@@ -1,5 +1,13 @@
 # VRChat-AI-Bot
-Test to hook a VRChat user account up to an LLM, see what happens.
+
+My attempt at making a VRChat AI bot. I'd say the result is extremely good.
+Runs on practically any hardware, including integrated graphics.
+As long as the hardware can run VRChat desktop at atleast 15 fps.
+This is a result of all processing done remotely.
+
+The bot utilizes Character AI for custom AI chatbots, Google Speech to text, and Google Text to speech.
+
+Tutorial (yes, this is copy pasted directly from the python script. i am lazy)
 
 #README
 
