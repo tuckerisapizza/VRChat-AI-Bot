@@ -11,28 +11,23 @@ import asyncio
 from characterai import aiocai
 from pythonosc import osc_server, udp_client
 import vrchatapi
-from vrchatapi.api import authentication_api, invite_api, notifications_api, worlds_api, instances_api
+from vrchatapi.api import authentication_api, invite_api, notifications_api, worlds_api, instances_api, groups_api
 from vrchatapi.exceptions import UnauthorizedException
 from vrchatapi.models.two_factor_auth_code import TwoFactorAuthCode
 from vrchatapi.models.two_factor_email_code import TwoFactorEmailCode
+from vrchatapi.models.create_group_invite_request import CreateGroupInviteRequest
+
+
 import threading
 import random
 import time
 
-#README
+import credentials
+ 
 
-#i recommend you setup your audio pipelines before you even go installing packages
-#speaker needs to be mapped to microphone using VB-Audio Cable (for text to speech)
-#microphone needs to be mapped to speaker using a physical aux cable connecting a speaker output to microphone input (for speech recognition)
 
-#after that, test if it works by playing a youtube video and see if the script detects the youtube video's audio and the bot responds to it
-#then, install packages and replace neccessary values such as your VRChat login and character AI api key
-
-#character AI api key can be found here (https://docs.kram.cat/) run the first script on this page, input the link they email you, and thats your key for line 74
-#input a character ai character into line 70
-#input your vrchat credentials into lines 125 and 126
-
-#
+# Function to convert text to
+# speech
 global num
 global aiinput
 global speechrecdone
@@ -40,37 +35,128 @@ global timesent
 global listencount
 global chat
 global resets
+global isemoting
+global movementpaused
+global title
+
 globals()["num"] = 1
 globals()["resets"] = 0
 globals()["aiinput"] = ""
 globals()["speechrecdone"] = False
 globals()["timesent"] = round(time.time(), 1)
 globals()["listencount"] = 0
+globals()["isemoting"] = False
+globals()["movementpaused"] = False
+globals()["title"] = "🐝Tigerbee Bot🐝"
 
 def filter(input):
     badword = False
-    bad_words_list = ["porn", "p hub", "9/11", "hitler", "911", "nazi", "1940", "drug", "meth", "serial killer", "kill myself", "cannibalism","columbine","shoot", "cult", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", "nig", "fag", "adult content", "nsfw"] 
-    for word in bad_words_list: #filters out really bad stuff
+    bad_words_list = [" edging "," penis ","mein kampf"," cult ", " touch ", " rape ", "daddy","jew","porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", "drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", "nigg", "fag", "adult content", "nsfw"]
+    for word in bad_words_list:
         if badword == False:
             if word in input.lower():
                 badword = True
+                print("BAD WORD FOUND " + word)
             else:
                 badword = False
             
     return badword
 
+def checkfocommands(combined, prompt, airesp):
+    client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
+    response = combined.lower()
+
+    globals()["isemoting"] = True
+    if "forward" in response:
+        client.send_message("/input/MoveForward", [1])
+        time.sleep(2)
+        client.send_message("/input/MoveForward", [0])
+    if "backward" in response:
+        client.send_message("/input/MoveBackward", [1])
+        time.sleep(2)
+        client.send_message("/input/MoveBackward", [0])
+    if "left" in response:
+        client.send_message("/input/LookLeft", [1])
+        time.sleep(.45)       
+        client.send_message("/input/LookLeft", [0])
+    if "right" in response:
+        client.send_message("/input/LookRight", [1])
+        time.sleep(.45)       
+        client.send_message("/input/LookRight", [0])
+    if "play" in response and "spotify" in response:
+        SpeakText("Sorry, Spotify support isn't currently available.")
+        
+    if "play" in response and "youtube" in response:
+        SpeakText("Sorry, Youtube support isn't currently available.")
+    if "pause" in response and "move" in response:
+        globals()["movementpaused"] = True
+        globals()["title"] = "Movement paused.\vSay `unpause movement`."
+    if "unpause" in response and "move" in response:
+        globals()["movementpaused"] = False
+        globals()["title"] = "🐝Tigerbee Bot🐝"
+    
+       
+          
+    globals()["isemoting"] = False
+
+def checkforemotes(response):
+    client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
+    response = response.lower()
+    emote = 0
+    globals()["isemoting"] = True
+    if "wave" in response:
+        emote = 1
+    if "clap" in response:
+        emote = 2
+    if "point" in response:
+        emote = 3
+    if "cheer" in response:
+        emote = 4
+    if "dance" in response:
+        emote = 5
+    if "backflip" in response or "flip" in response:
+        emote = 6
+    if "kick" in response:
+        emote = 7
+    if "die" in response:
+        emote = 8
+    if not emote == 0:
+        # SENDS DATA TO VRCHAT OVER PARAMS FOCUS, FOCUSLEFT AND FOCUSRIGHT     
+        client.send_message("/avatar/parameters/VRCEmote", [int(emote)])
+        print("emote # " + str(emote))
+        time.sleep(2)
+        client.send_message("/avatar/parameters/VRCEmote", [int(0)])      
+    globals()["isemoting"] = False
+
+def managetextdoc(line):
+    max_line_length = 30
+    
+    # Split the line into chunks of max_line_length characters
+    chunks = [line[i:i+max_line_length] for i in range(0, len(line), max_line_length)]
+    
+    with open("currentreqres.txt", 'r+') as file:
+        content = file.read()
+        file.seek(0, 0)  # Move cursor to the start of the file
+        
+        # Write each chunk as a separate line
+        for chunk in reversed(chunks):  # Reverse to maintain original order
+            file.write(chunk.rstrip('\r\n') + '\n')
+        
+        file.write(content)  # Write the original content after the new 
+
 def sendchatbox(aiinput):
     
-    messagestring = "🐝Tigerbee Bot🐝\v╔══════╗\v%s\v╚══════╝" % (aiinput) #replace the first line with your bot's name
-    client = udp_client.SimpleUDPClient("127.0.0.1", 9000) # SENDS DATA TO VRCHAT OVER PARAMS FOCUS, FOCUSLEFT AND FOCUSRIGHT  #this is funny to see because i stole the code from my Muse VRChat implementation 
+    messagestring = "%s\v╔═══════╗\v%s\v╚═══════╝" % (globals()["title"], aiinput)
+    client = udp_client.SimpleUDPClient("127.0.0.1", 9000) # SENDS DATA TO VRCHAT OVER PARAMS FOCUS, FOCUSLEFT AND FOCUSRIGHT     
     client.send_message("/chatbox/input", [messagestring , True, False])
     print(messagestring)
 
 async def cai():
-    char = "-utjNm3ucG3AwUNA7VPGjN-6tB4LhoW0W4yjByGfWL8" #character AI character url goes here (found at the end of any chat url). default is tigerbee bot.
-    #dHDnyegsNfHd4nGojcTmtEoVPtD3L-rxEWulLHgKLOU #might be gojo character ai
-    #13bcwUru8Qg8BIKBO7NbsHaE3EVeVWlTx4QcV1sG6Oo #might be joe biden character ai
-    client = aiocai.Client("CHARACTER AI KEY")  #CHARACTER AI API KEY GOES HERE
+    char = credentials.CAI_CHARACTER
+    # char = "-utjNm3ucG3AwUNA7VPGjN-6tB4LhoW0W4yjByGfWL8" old tigerbee bot
+    #dHDnyegsNfHd4nGojcTmtEoVPtD3L-rxEWulLHgKLOU
+#13bcwUru8Qg8BIKBO7NbsHaE3EVeVWlTx4QcV1sG6Oo
+    client = aiocai.Client(credentials.CAI_API_KEY)
 
     me = await client.get_me()
 
@@ -87,15 +173,17 @@ async def cai():
         if globals()["resets"] > 0:
             SpeakText("Character AI filtered out the prompt or the bot reset. Please try again.")
         else:
-            SpeakText("Update applied and bot reset. " + answer.text) #says the bot's greeting message
+            SpeakText("Updated and reset bot! " + answer.text)
+            
         
         
         while True:    
             try:
                 if globals()["speechrecdone"] == True:
-                    sendchatbox("Thinking...") #lets users know the bot is thinking
+                    sendchatbox("Thinking...")
                     globals()["speechrecdone"] = False
                     MyText = globals()["aiinput"]
+                    
                     isinputbad = filter(MyText)
                     if isinputbad:
                         SpeakText("Prompt is innapropriate. Please try again.")
@@ -103,32 +191,37 @@ async def cai():
                         message = await chat.send_message(
                             char, new.chat_id, MyText
                         )
+                        
                         isresponsebad = filter(message.text)
                         if isresponsebad:
                             SpeakText("Response is innapropriate. Please try again.")
                         else:
                             print(f'{message.name}: {message.text}')
+                            
                             SpeakText(message.text)
+                            checkforemotes(message.text + MyText)
+                            checkfocommands(message.text + MyText,MyText,message.text)
+                            managetextdoc("Tigerbee Bot: " + message.text)
                             globals()["speechrecdone"] = False
                 await asyncio.sleep(0)
-            except: #sometimes, character ai filters an entire request, crashing the script. we just start up a new one and add a tick to the reset counter. worked fine for me
+            except:
                 globals()["resets"] = globals()["resets"] + 1
                 task2 = asyncio.create_task(cai())
                 await asyncio.gather(task2)
-                while True: #this code never runs, have it here just in case
-                    print("something is fucked")
+                while True:
+                    asynctasklol = ""   
 
                 
             
 def checkinvites():
     configuration = vrchatapi.Configuration(
-        username = 'VRChat Username',       #INPUT YOUR VRCHAT USERNAME
-        password = 'VRChat Password',       #INPUT YOUR VRCHAT PASSWORD
+        username = credentials.VRCHAT_USER,
+        password = credentials.VRCHAT_PASSWORD,
     )
 
     with vrchatapi.ApiClient(configuration) as api_client:
     #    # Set our User-Agent as per VRChat Usage Policy
-        api_client.user_agent = "VRChat AI Bot / public release / email goes here / made by tucker."
+        api_client.user_agent = credentials.USER_AGENT
 
         # Instantiate instances of API classes
         auth_api = authentication_api.AuthenticationApi(api_client)
@@ -158,8 +251,10 @@ def checkinvites():
                 if notification.type == 'friendRequest':
                     notifications_api.NotificationsApi(api_client).accept_friend_request(notification.id)
                     print("accepted friend!")
+                    invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
+                    groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
                         
-            time.sleep(5)  # Check for notifications every 5 seconds
+            time.sleep(7)  # Check for notifications every 5 seconds
 
 def speechrec():
     while(True):    
@@ -168,11 +263,11 @@ def speechrec():
             
             globals()["listencount"] = globals()["listencount"] + 1
             # Adjust for ambient noise
-            recognizer.adjust_for_ambient_noise(source)
+           
 
             try:
                 # Capture audio input
-                audio = recognizer.listen(source, timeout=1.7, phrase_time_limit=8)  # Adjust timeout as needed
+                audio = recognizer.listen(source, timeout=2.5, phrase_time_limit=8)  # Adjust timeout as needed
 
                 print("Recognizing...")
                 
@@ -185,15 +280,17 @@ def speechrec():
                 oldaiinput =  globals()["aiinput"]
                 newaiinput = sentence
                 globals()["aiinput"] = sentence
-                if oldaiinput == newaiinput: 
+                managetextdoc("User: " + sentence)
+                if oldaiinput == newaiinput:
                     globals()["speechrecdone"] = True
                 else:
                     time.sleep(.1)
                     globals()["aiinput"] = sentence
                     globals()["speechrecdone"] = True
+                    
 
             except sr.WaitTimeoutError:
-                if globals()["listencount"] > 10: #after 10 failed attempts, shows text box to get engagement back
+                if globals()["listencount"] > 10:
                     sendchatbox("Hi, I'm Tigerbee bot!\vCome talk with me!\v(Read my bio)")
                     globals()["listencount"] = 0
             except sr.UnknownValueError:
@@ -209,8 +306,9 @@ def speechrec():
 def move():  
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     while (True):
-        time.sleep(.13) #shorter time means faster movements, depends on machine speed tbh
-        if globals()["speechrecdone"] == False: #only moves when the bot isnt thinking
+        time.sleep(.13)
+        if globals()["speechrecdone"] == False and globals()["isemoting"] == False and globals()["movementpaused"] == False:
+            
                 num = random.randrange(1, 160)
                 
                 
@@ -267,9 +365,9 @@ def SpeakText(command):
     sendchatbox(command)
         # Initialize mixer with the correct device
     # Set the parameter devicename to use the VB-CABLE name from the outputs printed previously.
-    mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)") #outputs to the microphone
+    mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)", frequency=48510)
  
-    tts = gTTS(command, lang='en')
+    tts = gTTS(command.replace(":", " colon "), lang='en')
     tts.save(str(globals()["num"]) + ".mp3")
 
     # Play the saved audio file
@@ -277,7 +375,7 @@ def SpeakText(command):
     mixer.music.play()
     mixer.stop()
     globals()["num"] += 1
-    
+
         
 # Loop infinitely for user to
 # speak
@@ -292,7 +390,7 @@ async def main():
     
         # Create tasks for async functions
     
-    task2 = asyncio.create_task(cai()) #yes, i did use chatgpt to help me manage the threads, thank u for asking
+    task2 = asyncio.create_task(cai())
 
     # Run normal function in a separate thread
     thread = threading.Thread(target=speechrec)
