@@ -9,22 +9,23 @@ The bot utilizes Character AI for custom AI chatbots, Google Speech to text, and
 
 Tutorial (yes, this is copy pasted directly from the python script. i am lazy)
 
-#README
+# README
 
-#i recommend you setup your audio pipelines before you even go installing packages
+download both botscript.py and credentials.py and put them both in the same folder
 
-#speaker needs to be mapped to microphone using VB-Audio Cable (for text to speech)
+i recommend you setup your audio pipelines before you even go installing packages
 
-#microphone needs to be mapped to speaker using a physical aux cable connecting a speaker output to microphone input (for speech recognition)
+speaker needs to be mapped to microphone using VB-Audio Cable (for text to speech)
 
-
-#after that, test if it works by playing a youtube video and see if the script detects the youtube video's audio and the bot responds to it
+microphone needs to be mapped to speaker using a physical aux cable connecting a speaker output to microphone input (for speech recognition)
 
 #then, install packages and replace neccessary values such as your VRChat login and character AI api key
 
+character AI api key can be found here (https://docs.kram.cat/) run the first script on this page, input the link they email you, and thats your key for credentials.py
 
-#character AI api key can be found here (https://docs.kram.cat/) run the first script on this page, input the link they email you, and thats your key for line 74
+input a character ai character into credentials.py
 
-#input a character ai character into line 70
+input your vrchat credentials into credentials.py
 
-#input your vrchat credentials into lines 125 and 126
+after that, test if it works by playing a youtube video and see if the script detects the youtube video's audio and the bot responds to it
+good luck!
