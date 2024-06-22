@@ -23,7 +23,7 @@ character AI api key can be found here (https://docs.kram.cat/) run the first sc
 
 input a character ai character into credentials.py
 
-input your vrchat credentials into credentials.py
+input your vrchat credentials and custom user agent into credentials.py
 
 after that, test if it works by playing a youtube video and see if the script detects the youtube video's audio and the bot responds to it
 good luck!
