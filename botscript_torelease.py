@@ -246,15 +246,18 @@ def checkinvites():
         print("Logged in as:", current_user.display_name)
         
         while(True):
-            notifications = notifications_api.NotificationsApi(api_client).get_notifications()
-            for notification in notifications:
-                if notification.type == 'friendRequest':
-                    notifications_api.NotificationsApi(api_client).accept_friend_request(notification.id)
-                    print("accepted friend!")
-                    invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
-                    groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
-                        
-            time.sleep(7)  # Check for notifications every 5 seconds
+            try:
+                notifications = notifications_api.NotificationsApi(api_client).get_notifications()
+                for notification in notifications:
+                    if notification.type == 'friendRequest':
+                        notifications_api.NotificationsApi(api_client).accept_friend_request(notification.id)
+                        print("accepted friend!")
+                        invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
+                        groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
+                            
+                time.sleep(7)  # Check for notifications every 5 seconds
+            except:
+                print("notif error")
 
 def speechrec():
     while(True):    
