@@ -128,22 +128,6 @@ def checkforemotes(response):
         client.send_message("/avatar/parameters/VRCEmote", [int(0)])      
     globals()["isemoting"] = False
 
-def managetextdoc(line):
-    max_line_length = 30
-    
-    # Split the line into chunks of max_line_length characters
-    chunks = [line[i:i+max_line_length] for i in range(0, len(line), max_line_length)]
-    
-    with open("currentreqres.txt", 'r+') as file:
-        content = file.read()
-        file.seek(0, 0)  # Move cursor to the start of the file
-        
-        # Write each chunk as a separate line
-        for chunk in reversed(chunks):  # Reverse to maintain original order
-            file.write(chunk.rstrip('\r\n') + '\n')
-        
-        file.write(content)  # Write the original content after the new 
-
 def sendchatbox(aiinput):
     
     messagestring = "%s\v╔═══════╗\v%s\v╚═══════╝" % (globals()["title"], aiinput)
@@ -201,7 +185,7 @@ async def cai():
                             SpeakText(message.text)
                             checkforemotes(message.text + MyText)
                             checkfocommands(message.text + MyText,MyText,message.text)
-                            managetextdoc("Tigerbee Bot: " + message.text)
+                           
                             globals()["speechrecdone"] = False
                 await asyncio.sleep(0)
             except:
@@ -283,7 +267,7 @@ def speechrec():
                 oldaiinput =  globals()["aiinput"]
                 newaiinput = sentence
                 globals()["aiinput"] = sentence
-                managetextdoc("User: " + sentence)
+                
                 if oldaiinput == newaiinput:
                     globals()["speechrecdone"] = True
                 else:
