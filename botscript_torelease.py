@@ -51,7 +51,7 @@ globals()["title"] = "🐝Tigerbee Bot🐝"
 
 def filter(input):
     badword = False
-    bad_words_list = [" edging "," penis ","mein kampf"," cult ", " touch ", " rape ", "daddy","jew","porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", "drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", "nigg", "fag", "adult content", "nsfw"]
+    bad_words_list = [" piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love"," sexual","do anything now"," illegal "," slur"," blush"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nig", " fag", "adult content", "nsfw"]
     for word in bad_words_list:
         if badword == False:
             if word in input.lower():
@@ -128,6 +128,22 @@ def checkforemotes(response):
         client.send_message("/avatar/parameters/VRCEmote", [int(0)])      
     globals()["isemoting"] = False
 
+def managetextdoc(line):
+    max_line_length = 30
+    
+    # Split the line into chunks of max_line_length characters
+    chunks = [line[i:i+max_line_length] for i in range(0, len(line), max_line_length)]
+    
+    with open("currentreqres.txt", 'r+') as file:
+        content = file.read()
+        file.seek(0, 0)  # Move cursor to the start of the file
+        
+        # Write each chunk as a separate line
+        for chunk in reversed(chunks):  # Reverse to maintain original order
+            file.write(chunk.rstrip('\r\n') + '\n')
+        
+        file.write(content)  # Write the original content after the new 
+
 def sendchatbox(aiinput):
     
     messagestring = "%s\v╔═══════╗\v%s\v╚═══════╝" % (globals()["title"], aiinput)
@@ -157,7 +173,7 @@ async def cai():
         if globals()["resets"] > 0:
             SpeakText("Character AI filtered out the prompt or the bot reset. Please try again.")
         else:
-            SpeakText("Updated and reset bot! " + answer.text)
+            SpeakText("Thank you all for helping me improve the filter. Updated bot. " + answer.text)
             
         
         
@@ -185,7 +201,7 @@ async def cai():
                             SpeakText(message.text)
                             checkforemotes(message.text + MyText)
                             checkfocommands(message.text + MyText,MyText,message.text)
-                           
+                            
                             globals()["speechrecdone"] = False
                 await asyncio.sleep(0)
             except:
@@ -231,6 +247,7 @@ def checkinvites():
         
         while(True):
             try:
+                print("notifications checked!")
                 notifications = notifications_api.NotificationsApi(api_client).get_notifications()
                 for notification in notifications:
                     if notification.type == 'friendRequest':
@@ -242,6 +259,7 @@ def checkinvites():
                 time.sleep(7)  # Check for notifications every 5 seconds
             except:
                 print("notif error")
+            
 
 def speechrec():
     while(True):    
@@ -348,20 +366,24 @@ def move():
 
 
 def SpeakText(command):
-    globals()["listencount"] = 0
-    sendchatbox(command)
-        # Initialize mixer with the correct device
-    # Set the parameter devicename to use the VB-CABLE name from the outputs printed previously.
-    mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)", frequency=48510)
- 
-    tts = gTTS(command.replace(":", " colon "), lang='en')
-    tts.save(str(globals()["num"]) + ".mp3")
+    try:
+        globals()["listencount"] = 0
+        sendchatbox(command)
+            # Initialize mixer with the correct device
+        # Set the parameter devicename to use the VB-CABLE name from the outputs printed previously.
+        mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)", frequency=48510)
+    
+        tts = gTTS(command.replace(":", " colon "), lang='en')
+        tts.save(str(globals()["num"]) + ".mp3")
 
-    # Play the saved audio file
-    mixer.music.load(str(globals()["num"]) + ".mp3")
-    mixer.music.play()
-    mixer.stop()
-    globals()["num"] += 1
+        # Play the saved audio file
+        mixer.music.load(str(globals()["num"]) + ".mp3")
+        mixer.music.play()
+        mixer.stop()
+        globals()["num"] += 1
+    except:
+        sendchatbox("Text to speech has failed. Please contact the owner of this bot.")
+    
 
         
 # Loop infinitely for user to
