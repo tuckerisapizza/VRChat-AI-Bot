@@ -5,7 +5,7 @@ Runs on practically any hardware, including integrated graphics.
 As long as the hardware can run VRChat desktop at atleast 15 fps.
 This is a result of all processing done remotely.
 
-The bot utilizes Character AI for custom AI chatbots, Google Speech to text, and Google Text to speech.
+The branch utilizes OLLaMA for custom AI models, Google Speech to text, and Google Text to speech.
 
 # README
 
@@ -17,11 +17,7 @@ speaker needs to be mapped to microphone using VB-Audio Cable (for text to speec
 
 microphone needs to be mapped to speaker using a physical aux cable connecting a speaker output to microphone input (for speech recognition)
 
-then, install packages and replace neccessary values such as your VRChat login and character AI api key
-
-character AI api key can be found here (https://docs.kram.cat/) run the first script on this page, input the link they email you, and thats your key for credentials.py
-
-input a character ai character into credentials.py
+then, install packages and replace neccessary values such as your VRChat login and ollama model
 
 input your vrchat credentials and custom user agent into credentials.py
 
