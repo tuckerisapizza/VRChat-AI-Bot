@@ -1,6 +1,6 @@
 SpeechRecognition
 gTTS
 pygame
-characterai
 python-osc
 vrchatapi
+ollama
