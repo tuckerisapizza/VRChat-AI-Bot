@@ -7,6 +7,8 @@ This is a result of all processing done remotely.
 
 The bot utilizes Character AI for custom AI chatbots, Google Speech to text, and Google Text to speech.
 
+VIEW OUR BRANCHES FOR OTHER AI MODEL ARCHITECTURES, main IS CHARACTER AI
+
 # README
 
 download both botscript.py and credentials.py and put them both in the same folder
