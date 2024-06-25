@@ -1,9 +1,7 @@
 # VRChat-AI-Bot
 
-My attempt at making a VRChat AI bot. I'd say the result is extremely good.
-Runs on practically any hardware, including integrated graphics.
-As long as the hardware can run VRChat desktop at atleast 15 fps.
-This is a result of all processing done remotely.
+ALL CREDIT GOES TO sinneDeeL FOR ADAPTING MY SCRIPT TO WORK WITH OLLAMA
+THIS SCRIPT WAS NOT CREATED BY ME
 
 The branch utilizes OLLaMA for custom AI models, Google Speech to text, and Google Text to speech.
 
