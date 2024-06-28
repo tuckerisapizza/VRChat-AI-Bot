@@ -53,7 +53,6 @@ def inputCommands(combined): # this is the top voice input area,
     global ollamaModel
     global osctitle
     global commandProcessed
-    global awaiting_difficulty_response
     global conversation_history
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
 
@@ -81,7 +80,7 @@ def inputCommands(combined): # this is the top voice input area,
         globals()["title"] = osctitle
         commandProcessed = True
         conversation_history = []
-
+# USER INPUT ------------------------------------------------------------------------------------------------------------
     if "clear" in response and "history" in response:
 
         globals()["aiinput"] = ""
@@ -119,7 +118,7 @@ def inputCommands(combined): # this is the top voice input area,
         client.send_message("/input/LookRight", [0])
 
 
-# USER INPUT ------------------------------------------------------------------------------------------------------------
+
 
 
 
@@ -138,7 +137,6 @@ global resets
 global isemoting
 global movementpaused
 global title
-global awaiting_difficulty_response
 
 globals()["num"] = 1
 globals()["resets"] = 0
@@ -149,7 +147,7 @@ globals()["listencount"] = 0
 globals()["isemoting"] = False
 globals()["movementpaused"] = False
 globals()["title"] = osctitle
-globals()["awaiting_difficulty_response"] = False
+
 
 def filter(input):
     badword = False
