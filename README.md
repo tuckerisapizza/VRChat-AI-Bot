@@ -15,7 +15,7 @@ speaker needs to be mapped to microphone using VB-Audio Cable (for text to speec
 
 microphone needs to be mapped to speaker using a physical aux cable connecting a speaker output to microphone input (for speech recognition)
 
-then, install packages and replace neccessary values such as your VRChat login and ollama model
+then, install packages and replace neccessary values such as your VRChat login and ollama model. check the USER INPUT area of the script.
 
 input your vrchat credentials and custom user agent into credentials.py
 
