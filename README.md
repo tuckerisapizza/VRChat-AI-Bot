@@ -11,7 +11,7 @@ VIEW OUR BRANCHES FOR OTHER AI MODEL ARCHITECTURES, main IS CHARACTER AI
 
 # README
 
-download both botscript.py and credentials.py and put them both in the same folder
+download both botscript.py, credentials.py, and requirements.txt and put them all in the same folder
 
 i recommend you setup your audio pipelines before you even go installing packages
 
@@ -19,9 +19,9 @@ speaker needs to be mapped to microphone using VB-Audio Cable (for text to speec
 
 microphone needs to be mapped to speaker using a physical aux cable connecting a speaker output to microphone input (for speech recognition)
 
-then, install packages and replace neccessary values such as your VRChat login and character AI api key
+then, install packages using requirements.txt
 
-character AI api key can be found here (https://docs.kram.cat/) run the first script on this page, input the link they email you, and thats your key for credentials.py
+character AI api key can be found here (https://docs.kram.cat/auth.html) run the first script on this page, input the link they email you, and thats your key for credentials.py
 
 input a character ai character into credentials.py
 
