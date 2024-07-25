@@ -16,6 +16,8 @@ from vrchatapi.exceptions import UnauthorizedException
 from vrchatapi.models.two_factor_auth_code import TwoFactorAuthCode
 from vrchatapi.models.two_factor_email_code import TwoFactorEmailCode
 from vrchatapi.models.create_group_invite_request import CreateGroupInviteRequest
+from pydub import AudioSegment
+import numpy as np
 
 
 import threading
@@ -38,6 +40,7 @@ global resets
 global isemoting
 global movementpaused
 global title
+global consoleenabled
 
 globals()["num"] = 1
 globals()["resets"] = 0
@@ -48,10 +51,11 @@ globals()["listencount"] = 0
 globals()["isemoting"] = False
 globals()["movementpaused"] = False
 globals()["title"] = "🐝Tigerbee Bot🐝"
+globals()["consoleenabled"] = False
 
 def filter(input):
     badword = False
-    bad_words_list = [" piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love"," sexual","do anything now"," illegal "," slur"," blush"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nig", " fag", "adult content", "nsfw"]
+    bad_words_list = ["cool kids club","kkk","ku klux klan","flustered","suck my dick","reagan","catheter","sexual play","intimate","vibrator","dildo","adult toy","holocaust","innards", "child porn", "innapropriate", "turns me on", " tickl", " explicit", " gape", " gaping", " fetish"," fart", " pee"," horny"," terroris","september 11th","bent over","inside of me","bend over","hemorrhoids"," piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love","do anything now"," illegal "," slur","blushes"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nigg", " fag", "adult content", "nsfw"]
     for word in bad_words_list:
         if badword == False:
             if word in input.lower():
@@ -61,6 +65,13 @@ def filter(input):
                 badword = False
             
     return badword
+
+def checkforreset(text):
+    response = text.lower()
+    if (("reset" in response or "restart" in response) and ("box" in response or "bot" in response or "bbott" in response or "Bebop" in response or "butt" in response)):
+        return True
+    else:
+        return False
 
 def checkfocommands(combined, prompt, airesp):
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
@@ -90,10 +101,12 @@ def checkfocommands(combined, prompt, airesp):
         SpeakText("Sorry, Youtube support isn't currently available.")
     if "pause" in response and "move" in response:
         globals()["movementpaused"] = True
-        globals()["title"] = "Movement paused.\vSay `unpause movement`."
+    if "follow" in prompt:
+        SpeakText("Sorry, the bot cannot currently follow you.")
+       
     if "unpause" in response and "move" in response:
         globals()["movementpaused"] = False
-        globals()["title"] = "🐝Tigerbee Bot🐝"
+        
     
        
           
@@ -104,12 +117,12 @@ def checkforemotes(response):
     response = response.lower()
     emote = 0
     globals()["isemoting"] = True
-    if "wave" in response:
-        emote = 1
-    if "clap" in response:
-        emote = 2
-    if "point" in response:
+    if "point" in response or "look" in response or "!" in response:
         emote = 3
+    if "wave" in response or "hi " in response or "hello" in response:
+        emote = 1
+    if "clap" in response or "congrat" in response:
+        emote = 2
     if "cheer" in response:
         emote = 4
     if "dance" in response:
@@ -118,7 +131,7 @@ def checkforemotes(response):
         emote = 6
     if "kick" in response:
         emote = 7
-    if "die" in response:
+    if "die" in response or "dead" in response:
         emote = 8
     if not emote == 0:
         # SENDS DATA TO VRCHAT OVER PARAMS FOCUS, FOCUSLEFT AND FOCUSRIGHT     
@@ -128,30 +141,16 @@ def checkforemotes(response):
         client.send_message("/avatar/parameters/VRCEmote", [int(0)])      
     globals()["isemoting"] = False
 
-def managetextdoc(line):
-    max_line_length = 30
-    
-    # Split the line into chunks of max_line_length characters
-    chunks = [line[i:i+max_line_length] for i in range(0, len(line), max_line_length)]
-    
-    with open("currentreqres.txt", 'r+') as file:
-        content = file.read()
-        file.seek(0, 0)  # Move cursor to the start of the file
-        
-        # Write each chunk as a separate line
-        for chunk in reversed(chunks):  # Reverse to maintain original order
-            file.write(chunk.rstrip('\r\n') + '\n')
-        
-        file.write(content)  # Write the original content after the new 
 
 def sendchatbox(aiinput):
     
-    messagestring = "%s\v╔═══════╗\v%s\v╚═══════╝" % (globals()["title"], aiinput)
+    messagestring = "%s\v%s" % (globals()["title"], aiinput)
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000) # SENDS DATA TO VRCHAT OVER PARAMS FOCUS, FOCUSLEFT AND FOCUSRIGHT     
     client.send_message("/chatbox/input", [messagestring , True, False])
     print(messagestring)
 
 async def cai():
+    #char = "13bcwUru8Qg8BIKBO7NbsHaE3EVeVWlTx4QcV1sG6Oo"
     char = credentials.CAI_CHARACTER
     # char = "-utjNm3ucG3AwUNA7VPGjN-6tB4LhoW0W4yjByGfWL8" old tigerbee bot
     #dHDnyegsNfHd4nGojcTmtEoVPtD3L-rxEWulLHgKLOU
@@ -171,28 +170,29 @@ async def cai():
         #SpeakText("Sorry, an error occured. Restarting. " + answer.text)
    #     SpeakText("Restarting. " + answer.text)
         if globals()["resets"] > 0:
-            SpeakText("Character AI filtered out the prompt or the bot reset. Please try again.")
+            SpeakText("Bot reset. Please try again.")
         else:
-            SpeakText("Thank you all for helping me improve the filter. Updated bot. " + answer.text)
+            SpeakText("Updated bot. " + answer.text)
             
         
         
         while True:    
             try:
                 if globals()["speechrecdone"] == True:
-                    sendchatbox("Thinking...")
                     globals()["speechrecdone"] = False
                     MyText = globals()["aiinput"]
-                    
                     isinputbad = filter(MyText)
+                    # isinputbad = False
                     if isinputbad:
                         SpeakText("Prompt is innapropriate. Please try again.")
                     else:
+                        sendchatbox("Thinking...\vPrompt: " + globals()["aiinput"])
                         message = await chat.send_message(
                             char, new.chat_id, MyText
                         )
                         
                         isresponsebad = filter(message.text)
+                        # isresponsebad = False
                         if isresponsebad:
                             SpeakText("Response is innapropriate. Please try again.")
                         else:
@@ -201,15 +201,20 @@ async def cai():
                             SpeakText(message.text)
                             checkforemotes(message.text + MyText)
                             checkfocommands(message.text + MyText,MyText,message.text)
-                            
+                            ck = checkforreset(message.text + MyText)
+                            if ck:
+                                break
                             globals()["speechrecdone"] = False
                 await asyncio.sleep(0)
             except:
                 globals()["resets"] = globals()["resets"] + 1
                 task2 = asyncio.create_task(cai())
                 await asyncio.gather(task2)
-                while True:
-                    asynctasklol = ""   
+
+        print("special sauce")
+        globals()["resets"] = globals()["resets"] + 1
+        task2 = asyncio.create_task(cai())
+        await asyncio.gather(task2) 
 
                 
             
@@ -244,7 +249,7 @@ def checkinvites():
             print("Exception when calling API: %s\n", e)
         #
         print("Logged in as:", current_user.display_name)
-        
+        globals()["consoleenabled"] = True
         while(True):
             try:
                 print("notifications checked!")
@@ -272,7 +277,7 @@ def speechrec():
 
             try:
                 # Capture audio input
-                audio = recognizer.listen(source, timeout=2.5, phrase_time_limit=8)  # Adjust timeout as needed
+                audio = recognizer.listen(source, timeout=1.5, phrase_time_limit=8)  # Adjust timeout as needed
 
                 print("Recognizing...")
                 
@@ -295,8 +300,8 @@ def speechrec():
                     
 
             except sr.WaitTimeoutError:
-                if globals()["listencount"] > 10:
-                    sendchatbox("Hi, I'm Tigerbee bot!\vCome talk with me!\v(Read my bio)")
+                if globals()["listencount"] > 7:
+                    sendchatbox("Stand in my circle to talk to me!\v(I'm hard of hearing)")
                     globals()["listencount"] = 0
             except sr.UnknownValueError:
                 print("Speech recognition could not understand audio.")
@@ -359,6 +364,22 @@ def move():
                     client.send_message("/input/LookRight", [0])
                 
 
+def console():
+    while True:
+        if globals()["consoleenabled"] == True:
+            text = input()
+            if "#" in text: #to talk to the bot
+                globals()["aiinput"] = text
+                globals()["speechrecdone"] = True
+            else:
+                globals()["title"] = "||Message from Creator||"
+                if not "/" in text: #to run commands without the bot speaking it
+                    SpeakText(text)
+                checkforreset(text)
+                checkfocommands(text, text, text)
+                checkforemotes(text)
+                globals()["title"] = "🐝Tigerbee Bot🐝"
+
 
 
             
@@ -371,13 +392,19 @@ def SpeakText(command):
         sendchatbox(command)
             # Initialize mixer with the correct device
         # Set the parameter devicename to use the VB-CABLE name from the outputs printed previously.
-        mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)", frequency=48510)
+        mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)")
     
         tts = gTTS(command.replace(":", " colon "), lang='en')
         tts.save(str(globals()["num"]) + ".mp3")
+        audio = AudioSegment.from_file(str(globals()["num"]) + ".mp3")
 
+        # Apply speed up factor
+        audio = audio.speedup(playback_speed=1.2)
+
+        # Export modified audio
+        audio.export(str(globals()["num"]) + "sped.mp3", format="mp3")
         # Play the saved audio file
-        mixer.music.load(str(globals()["num"]) + ".mp3")
+        mixer.music.load(str(globals()["num"]) + "sped.mp3")
         mixer.music.play()
         mixer.stop()
         globals()["num"] += 1
@@ -408,6 +435,8 @@ async def main():
     thread2.start()
     thread3 = threading.Thread(target=move)
     thread3.start()
+    thread4 = threading.Thread(target=console)
+    thread4.start()
 
     # Let tasks run indefinitely without waiting for them to complete
     await asyncio.gather(task2)
