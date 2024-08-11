@@ -263,6 +263,7 @@ async def cai():
                         # isinputbad = False
                         if isinputbad:
                             SpeakText("Prompt is innapropriate. Please try again.")
+                            
                         else:
                             sendchatbox("Thinking...\vPrompt: " + globals()["aiinput"])
                             message = await chat.send_message(
@@ -273,24 +274,28 @@ async def cai():
                             # isresponsebad = False
                             if isresponsebad:
                                 SpeakText("Response is innapropriate. Please try again.")
+                                
                             else:
                                 print(f'{message.name}: {message.text}')
-                                
+
                                 SpeakText(message.text)
+                                
                                 checkforemotes(message.text + MyText)
                                 checkfocommands(message.text + MyText,MyText,message.text)
                                 ck = checkforreset(message.text + MyText)
                                 if ck:
                                     break
-                                globals()["speechrecdone"] = False
+                                
                     await asyncio.sleep(0)
                 except:
                     globals()["resets"] = globals()["resets"] + 1
                     task2 = asyncio.create_task(cai())
+                    globals()["speechrecdone"] = False
                     await asyncio.gather(task2)
         print("special sauce")
         globals()["resets"] = globals()["resets"] + 1
         task2 = asyncio.create_task(cai())
+        globals()["speechrecdone"] = False
         await asyncio.gather(task2) 
 
                 
@@ -478,8 +483,9 @@ def SpeakText(command):
         mixer.music.play()
         mixer.stop()
         globals()["num"] += 1
+        
     except:
-        sendchatbox("Text to speech has failed. Please contact the owner of this bot.")
+        sendchatbox("Text to speech has failed. Please contact the owner of this bot.\v" + Exception)
     
 
         
