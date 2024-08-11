@@ -53,9 +53,25 @@ globals()["movementpaused"] = False
 globals()["title"] = "🐝Tigerbee Bot🐝"
 globals()["consoleenabled"] = False
 
+#debug variables
+global printnumgen
+globals()["printnumgen"] = False
+global printtextbox
+globals()["printtextbox"] = True
+global botenabled
+globals()["botenabled"] = True
+global speechregenabled
+globals()["speechregenabled"] = True
+global notiflog
+globals()["notiflog"] = False
+
+
+
+
+
 def filter(input):
     badword = False
-    bad_words_list = ["cool kids club","kkk","ku klux klan","flustered","suck my dick","reagan","catheter","sexual play","intimate","vibrator","dildo","adult toy","holocaust","innards", "child porn", "innapropriate", "turns me on", " tickl", " explicit", " gape", " gaping", " fetish"," fart", " pee"," horny"," terroris","september 11th","bent over","inside of me","bend over","hemorrhoids"," piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love","do anything now"," illegal "," slur","blushes"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nigg", " fag", "adult content", "nsfw"]
+    bad_words_list = ["niger","cool kids club","kkk","ku klux klan","flustered","suck my dick","reagan","catheter","sexual play","intimate","vibrator","dildo","adult toy","holocaust","innards", "child porn", "innapropriate", "turns me on", " tickl", " explicit", " gape", " gaping", " fetish"," fart", " pee"," horny"," terroris","september 11th","bent over","inside of me","bend over","hemorrhoids"," piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love","do anything now"," illegal "," slur","blushes"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nigg", " fag", "adult content", "nsfw"]
     for word in bad_words_list:
         if badword == False:
             if word in input.lower():
@@ -65,6 +81,57 @@ def filter(input):
                 badword = False
             
     return badword
+
+def debugcommandscheck(text):
+    if "printnumgen" in text:
+        if globals()["printnumgen"]:
+            globals()["printnumgen"] = False
+        else:
+            globals()["printnumgen"] = True
+        print(globals()["printnumgen"])
+
+    if "botenabled" in text:
+        if globals()["botenabled"]:
+            globals()["botenabled"] = False
+        else:
+            globals()["botenabled"] = True
+        print(globals()["botenabled"])
+
+    if "printtextbox" in text:
+        if globals()["printtextbox"]:
+            globals()["printtextbox"] = False
+        else:
+            globals()["printtextbox"] = True
+        print(globals()["printtextbox"])
+
+    if "speechregenabled" in text:
+        if globals()["speechregenabled"]:
+            globals()["speechregenabled"] = False
+        else:
+            globals()["speechregenabled"] = True
+        print(globals()["speechregenabled"])
+
+    if "notiflog" in text:
+        if globals()["notiflog"]:
+            globals()["notiflog"] = False
+        else:
+            globals()["notiflog"] = True
+        print(globals()["notiflog"])
+
+    if "movement" in text:
+        if globals()["movementpaused"]:
+            globals()["movementpaused"] = False
+        else:
+            globals()["movementpaused"] = True
+        print(globals()["movementpaused"])
+
+    if "speechrecdone" in text:
+        if globals()["speechrecdone"]:
+            globals()["speechrecdone"] = False
+        else:
+            globals()["speechrecdone"] = True
+        print(globals()["speechrecdone"])
+    
 
 def checkforreset(text):
     response = text.lower()
@@ -78,34 +145,43 @@ def checkfocommands(combined, prompt, airesp):
     response = combined.lower()
 
     globals()["isemoting"] = True
-    if "forward" in response:
+
+    if "forward" in prompt:
         client.send_message("/input/MoveForward", [1])
         time.sleep(2)
         client.send_message("/input/MoveForward", [0])
-    if "backward" in response:
+    if "backward" in prompt:
         client.send_message("/input/MoveBackward", [1])
         time.sleep(2)
         client.send_message("/input/MoveBackward", [0])
-    if "left" in response:
+    if "left" in prompt:
         client.send_message("/input/LookLeft", [1])
         time.sleep(.45)       
         client.send_message("/input/LookLeft", [0])
-    if "right" in response:
+    if "right" in prompt and not "alright" in prompt:
         client.send_message("/input/LookRight", [1])
         time.sleep(.45)       
         client.send_message("/input/LookRight", [0])
+
     if "play" in response and "spotify" in response:
         SpeakText("Sorry, Spotify support isn't currently available.")
-        
     if "play" in response and "youtube" in response:
         SpeakText("Sorry, Youtube support isn't currently available.")
-    if "pause" in response and "move" in response:
-        globals()["movementpaused"] = True
+    
     if "follow" in prompt:
         SpeakText("Sorry, the bot cannot currently follow you.")
        
-    if "unpause" in response and "move" in response:
-        globals()["movementpaused"] = False
+    if "pause" in response and "move" in response:
+        globals()["movementpaused"] = True
+    else:
+        if "unpause" in response and "move" in response:
+            globals()["movementpaused"] = False
+        else:
+            if "moving" in prompt or "move" in prompt and "don't" in prompt or "stop" in prompt or "start" in prompt or "pause" in prompt:
+                if globals()["movementpaused"] == False:
+                    globals()["movementpaused"] = True
+                else:
+                    globals()["movementpaused"] = False
         
     
        
@@ -147,7 +223,8 @@ def sendchatbox(aiinput):
     messagestring = "%s\v%s" % (globals()["title"], aiinput)
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000) # SENDS DATA TO VRCHAT OVER PARAMS FOCUS, FOCUSLEFT AND FOCUSRIGHT     
     client.send_message("/chatbox/input", [messagestring , True, False])
-    print(messagestring)
+    if globals()["printtextbox"]:
+        print(messagestring)
 
 async def cai():
     #char = "13bcwUru8Qg8BIKBO7NbsHaE3EVeVWlTx4QcV1sG6Oo"
@@ -176,41 +253,41 @@ async def cai():
             
         
         
-        while True:    
-            try:
-                if globals()["speechrecdone"] == True:
-                    globals()["speechrecdone"] = False
-                    MyText = globals()["aiinput"]
-                    isinputbad = filter(MyText)
-                    # isinputbad = False
-                    if isinputbad:
-                        SpeakText("Prompt is innapropriate. Please try again.")
-                    else:
-                        sendchatbox("Thinking...\vPrompt: " + globals()["aiinput"])
-                        message = await chat.send_message(
-                            char, new.chat_id, MyText
-                        )
-                        
-                        isresponsebad = filter(message.text)
-                        # isresponsebad = False
-                        if isresponsebad:
-                            SpeakText("Response is innapropriate. Please try again.")
+        while True:   
+            if globals()["botenabled"]:
+                try:
+                    if globals()["speechrecdone"] == True:
+                        globals()["speechrecdone"] = False
+                        MyText = globals()["aiinput"]
+                        isinputbad = filter(MyText)
+                        # isinputbad = False
+                        if isinputbad:
+                            SpeakText("Prompt is innapropriate. Please try again.")
                         else:
-                            print(f'{message.name}: {message.text}')
+                            sendchatbox("Thinking...\vPrompt: " + globals()["aiinput"])
+                            message = await chat.send_message(
+                                char, new.chat_id, MyText
+                            )
                             
-                            SpeakText(message.text)
-                            checkforemotes(message.text + MyText)
-                            checkfocommands(message.text + MyText,MyText,message.text)
-                            ck = checkforreset(message.text + MyText)
-                            if ck:
-                                break
-                            globals()["speechrecdone"] = False
-                await asyncio.sleep(0)
-            except:
-                globals()["resets"] = globals()["resets"] + 1
-                task2 = asyncio.create_task(cai())
-                await asyncio.gather(task2)
-
+                            isresponsebad = filter(message.text)
+                            # isresponsebad = False
+                            if isresponsebad:
+                                SpeakText("Response is innapropriate. Please try again.")
+                            else:
+                                print(f'{message.name}: {message.text}')
+                                
+                                SpeakText(message.text)
+                                checkforemotes(message.text + MyText)
+                                checkfocommands(message.text + MyText,MyText,message.text)
+                                ck = checkforreset(message.text + MyText)
+                                if ck:
+                                    break
+                                globals()["speechrecdone"] = False
+                    await asyncio.sleep(0)
+                except:
+                    globals()["resets"] = globals()["resets"] + 1
+                    task2 = asyncio.create_task(cai())
+                    await asyncio.gather(task2)
         print("special sauce")
         globals()["resets"] = globals()["resets"] + 1
         task2 = asyncio.create_task(cai())
@@ -252,7 +329,8 @@ def checkinvites():
         globals()["consoleenabled"] = True
         while(True):
             try:
-                print("notifications checked!")
+                if globals()["notiflog"]:
+                    print("notifications checked!")
                 notifications = notifications_api.NotificationsApi(api_client).get_notifications()
                 for notification in notifications:
                     if notification.type == 'friendRequest':
@@ -268,47 +346,49 @@ def checkinvites():
 
 def speechrec():
     while(True):    
-        recognizer = sr.Recognizer()
-        with sr.Microphone() as source:
+        if globals()["speechregenabled"]:
+
+            recognizer = sr.Recognizer()
+            with sr.Microphone() as source:
+                
+                globals()["listencount"] = globals()["listencount"] + 1
+                # Adjust for ambient noise
             
-            globals()["listencount"] = globals()["listencount"] + 1
-            # Adjust for ambient noise
-           
 
-            try:
-                # Capture audio input
-                audio = recognizer.listen(source, timeout=1.5, phrase_time_limit=8)  # Adjust timeout as needed
+                try:
+                    # Capture audio input
+                    audio = recognizer.listen(source, timeout=1.5, phrase_time_limit=8)  # Adjust timeout as needed
 
-                print("Recognizing...")
-                
-
-                # Use Google Speech Recognition
-                sentence = recognizer.recognize_google(audio)
-
-                # Print recognized sentence
-                print(f"Recognized: {sentence}")
-                oldaiinput =  globals()["aiinput"]
-                newaiinput = sentence
-                globals()["aiinput"] = sentence
-                
-                if oldaiinput == newaiinput:
-                    globals()["speechrecdone"] = True
-                else:
-                    time.sleep(.1)
-                    globals()["aiinput"] = sentence
-                    globals()["speechrecdone"] = True
+                    print("Recognizing...")
                     
 
-            except sr.WaitTimeoutError:
-                if globals()["listencount"] > 7:
-                    sendchatbox("Stand in my circle to talk to me!\v(I'm hard of hearing)")
-                    globals()["listencount"] = 0
-            except sr.UnknownValueError:
-                print("Speech recognition could not understand audio.")
+                    # Use Google Speech Recognition
+                    sentence = recognizer.recognize_google(audio)
+
+                    # Print recognized sentence
+                    print(f"Recognized: {sentence}")
+                    oldaiinput =  globals()["aiinput"]
+                    newaiinput = sentence
+                    globals()["aiinput"] = sentence
+                    
+                    if oldaiinput == newaiinput:
+                        globals()["speechrecdone"] = True
+                    else:
+                        time.sleep(.1)
+                        globals()["aiinput"] = sentence
+                        globals()["speechrecdone"] = True
+                        
+
+                except sr.WaitTimeoutError:
+                    if globals()["listencount"] > 7:
+                        sendchatbox("Stand in my circle to talk to me!\v(I'm hard of hearing)")
+                        globals()["listencount"] = 0
+                except sr.UnknownValueError:
+                    print("Speech recognition could not understand audio.")
+                    
+                except sr.RequestError as e:
+                    print(f"Could not request results from Google Speech Recognition service; {e}")
                 
-            except sr.RequestError as e:
-                print(f"Could not request results from Google Speech Recognition service; {e}")
-            
                     
                 
         
@@ -316,52 +396,41 @@ def speechrec():
 def move():  
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     while (True):
-        time.sleep(.13)
-        if globals()["speechrecdone"] == False and globals()["isemoting"] == False and globals()["movementpaused"] == False:
             
-                num = random.randrange(1, 160)
+        if globals()["speechrecdone"] == False and globals()["isemoting"] == False and globals()["movementpaused"] == False:
+            time.sleep(2.6)
+            num = random.randrange(1, 8)
+            if globals()["printnumgen"]:
+                print(num)
                 
+            if num == 1:
+                client.send_message("/input/Jump", [1])
+                num2 = random.randrange(1,2)
+                #print("jump for " + str(num2) + " seconds")
+                client.send_message("/input/Jump", [0])
                 
-                
-                # SENDS DATA TO VRCHAT OVER PARAMS FOCUS, FOCUSLEFT AND FOCUSRIGHT
-                timesent2 = round(time.time(), 1)
-                if num == 10:
-                    client.send_message("/input/Jump", [1])
-                    num2 = random.randrange(1,2)
-                    #print("jump for " + str(num2) + " seconds")
-                    currenttime2 = round(time.time(), 1)
-                    while currenttime2 < timesent2 + num2:
-                        currenttime2 = round(time.time(), 1)
-                    client.send_message("/input/Jump", [0])
-                
-                if num == 60:
-                    client.send_message("/input/MoveForward", [1])
-                    num2 = random.randrange(1,2)
-                    #print("moving forward for " + str(num2) + " seconds")
-                    currenttime2 = round(time.time(), 1)
-                    while currenttime2 < timesent2 + num2:
-                        currenttime2 = round(time.time(), 1)
-                    client.send_message("/input/MoveForward", [0])
+            if num == 6:
+                client.send_message("/input/MoveForward", [1])
+                num2 = random.randrange(1,2)
+                #print("moving forward for " + str(num2) + " seconds")
+                time.sleep(num2)
+                client.send_message("/input/MoveForward", [0])
 
-                if num == 40:
-                    client.send_message("/input/LookLeft", [1])
-                    num2 = random.randrange(10, 75)
-                    num3 = num2 / 100
-                    #print("left for " + str(num3) + " seconds")
-                    currenttime2 = round(time.time(), 1)
-                    while currenttime2 < timesent2 + num3:
-                        currenttime2 = round(time.time(), 1)
-                    client.send_message("/input/LookLeft", [0])
+            if num == 4:
+                client.send_message("/input/LookLeft", [1])
+                num2 = random.randrange(10, 75)
+                num3 = num2 / 100
+                #print("left for " + str(num3) + " seconds")
+                time.sleep(num3)
+                client.send_message("/input/LookLeft", [0])
 
-                if num == 20:
-                    client.send_message("/input/LookRight", [1])
-                    num2 = random.randrange(10, 75)
-                    num3 = num2 / 100
-                    #print("right for " + str(num3) + " seconds")
-                    currenttime2 = round(time.time(), 1)
-                    while currenttime2 < timesent2 + num3:
-                        currenttime2 = round(time.time(), 1)
-                    client.send_message("/input/LookRight", [0])
+            if num == 2:
+                client.send_message("/input/LookRight", [1])
+                num2 = random.randrange(10, 75)
+                num3 = num2 / 100
+                #print("right for " + str(num3) + " seconds")
+                time.sleep(num3)
+                client.send_message("/input/LookRight", [0])
                 
 
 def console():
@@ -378,6 +447,7 @@ def console():
                 checkforreset(text)
                 checkfocommands(text, text, text)
                 checkforemotes(text)
+                debugcommandscheck(text)
                 globals()["title"] = "🐝Tigerbee Bot🐝"
 
 
