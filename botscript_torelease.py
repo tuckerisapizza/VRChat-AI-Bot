@@ -25,6 +25,12 @@ import random
 import time
 
 import credentials
+
+import syllables
+stop_event = threading.Event()
+message_thread = None
+is_talking = False
+mp3Length = 0
  
 
 
@@ -71,7 +77,7 @@ globals()["notiflog"] = False
 
 def filter(input):
     badword = False
-    bad_words_list = ["niger","cool kids club","kkk","ku klux klan","flustered","suck my dick","reagan","catheter","sexual play","intimate","vibrator","dildo","adult toy","holocaust","innards", "child porn", "innapropriate", "turns me on", " tickl", " explicit", " gape", " gaping", " fetish"," fart", " pee"," horny"," terroris","september 11th","bent over","inside of me","bend over","hemorrhoids"," piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love","do anything now"," illegal "," slur","blushes"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nigg", " fag", "adult content", "nsfw"]
+    bad_words_list = ["nitroglycerin","niger","cool kids club","kkk","ku klux klan","flustered","suck my dick","reagan","catheter","sexual play","intimate","vibrator","dildo","adult toy","holocaust","innards", "child porn", "innapropriate", "turns me on", " tickl", " explicit", " gape", " gaping", " fetish"," fart", " pee"," horny"," terroris","september 11th","bent over","inside of me","bend over","hemorrhoids"," piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love","do anything now"," illegal "," slur","blushes"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nigg", " fag", "adult content", "nsfw"]
     for word in bad_words_list:
         if badword == False:
             if word in input.lower():
@@ -221,8 +227,10 @@ def checkforemotes(response):
 def sendchatbox(aiinput):
     
     messagestring = "%s\v%s" % (globals()["title"], aiinput)
+    if len(messagestring) > 144:
+        messagestring = messagestring[:140] + "..."
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000) # SENDS DATA TO VRCHAT OVER PARAMS FOCUS, FOCUSLEFT AND FOCUSRIGHT     
-    client.send_message("/chatbox/input", [messagestring , True, False])
+    client.send_message("/chatbox/input", [messagestring, True, False])
     if globals()["printtextbox"]:
         print(messagestring)
 
@@ -241,7 +249,6 @@ async def cai():
         new, answer = await chat.new_chat(
             char, me.id
         )
-
         
         print(f'{answer.name}: {answer.text}')
         #SpeakText("Sorry, an error occured. Restarting. " + answer.text)
@@ -277,14 +284,15 @@ async def cai():
                                 
                             else:
                                 print(f'{message.name}: {message.text}')
-
-                                SpeakText(message.text)
-                                
-                                checkforemotes(message.text + MyText)
-                                checkfocommands(message.text + MyText,MyText,message.text)
                                 ck = checkforreset(message.text + MyText)
                                 if ck:
                                     break
+                                SpeakText(message.text)
+                                checkforemotes(message.text + MyText)
+                                checkfocommands(message.text + MyText,MyText,message.text)
+                                
+                                
+                                
                                 
                     await asyncio.sleep(0)
                 except:
@@ -464,11 +472,11 @@ def console():
 def SpeakText(command):
     try:
         globals()["listencount"] = 0
-        sendchatbox(command)
+        
             # Initialize mixer with the correct device
         # Set the parameter devicename to use the VB-CABLE name from the outputs printed previously.
         mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)")
-    
+        sendchatbox("Generating Text to Speech...")
         tts = gTTS(command.replace(":", " colon "), lang='en')
         tts.save(str(globals()["num"]) + ".mp3")
         audio = AudioSegment.from_file(str(globals()["num"]) + ".mp3")
@@ -480,7 +488,10 @@ def SpeakText(command):
         audio.export(str(globals()["num"]) + "sped.mp3", format="mp3")
         # Play the saved audio file
         mixer.music.load(str(globals()["num"]) + "sped.mp3")
+        sendchatbox(command)
+        
         mixer.music.play()
+        
         mixer.stop()
         globals()["num"] += 1
         
