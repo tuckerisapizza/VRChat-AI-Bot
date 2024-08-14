@@ -288,6 +288,7 @@ async def cai():
                                 if ck:
                                     break
                                 SpeakText(message.text)
+                                globals()["speechrecdone"] = False
                                 checkforemotes(message.text + MyText)
                                 checkfocommands(message.text + MyText,MyText,message.text)
                                 
@@ -382,14 +383,11 @@ def speechrec():
                     print(f"Recognized: {sentence}")
                     oldaiinput =  globals()["aiinput"]
                     newaiinput = sentence
-                    globals()["aiinput"] = sentence
                     
-                    if oldaiinput == newaiinput:
-                        globals()["speechrecdone"] = True
-                    else:
-                        time.sleep(.1)
-                        globals()["aiinput"] = sentence
-                        globals()["speechrecdone"] = True
+                    globals()["aiinput"] = sentence
+
+                    globals()["speechrecdone"] = True
+                    
                         
 
                 except sr.WaitTimeoutError:
