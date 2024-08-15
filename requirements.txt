@@ -4,3 +4,5 @@ pygame
 characterai
 python-osc
 vrchatapi
+pydub
+syllables
