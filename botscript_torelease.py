@@ -1,3 +1,4 @@
+
 from characterai import pycai
 import speech_recognition as sr
 from gtts import gTTS
@@ -89,6 +90,7 @@ def mainthread():
                         if filter(message.text):
                             SpeakText("Response is innapropriate. Please try again.")
                         else:
+                            globals()["listencount"] = 0
                             print(f'{message.name}: {message.text}')
                             if checkforreset(message.text + text):
                                 break
@@ -97,7 +99,7 @@ def mainthread():
                             checkforcommands(message.text + text,text)
                         
                 except sr.WaitTimeoutError:
-                    if globals()["listencount"] > 7:
+                    if globals()["listencount"] > 12:
                         sendchatbox("Stand in my circle to talk to me!\v(I'm hard of hearing)")
                         globals()["listencount"] = 0
                 except sr.UnknownValueError:
@@ -203,15 +205,8 @@ def SpeakText(command):
         global is_talking
         global stop_event
         global message_thread
-
-        global idleMessage
-        mixer.init(frequency=48510)
-
-        globals()["idleMessage"] = "LOADING TTS... PLEASE WAIT (STOP TALKING/MOVE BACK...)"
-        mixer.music.load('./genTTS.mp3')
-        mixer.music.play()
-        sendchatbox("LOADING TTS... PLEASE WAIT (STOP TALKING/MOVE BACK...)")
-
+        mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)")
+        sendchatbox("Generating Text to Speech...")
         # Stop any existing playback or message thread
         if message_thread and message_thread.is_alive():
             stop_event.set()
@@ -222,8 +217,8 @@ def SpeakText(command):
 
         # Create and save TTS output
         tts = gTTS(command.replace(":", " colon "), lang='en')
-        tts_filename = f"{globals()['num']}norm.mp3"
-        tts.save(tts_filename)
+        tts_filename = f"{globals()['num']}.mp3"
+        tts.save(f"{globals()['num']}norm.mp3")
         
         audio = AudioSegment.from_file(str(globals()["num"]) + "norm.mp3")
         # Apply speed up factor
@@ -255,7 +250,7 @@ def SpeakText(command):
         audio_thread.start()
 
         try:
-            globals()["idleMessage"] = "Stand in my circle to talk to me!\v(I'm hard of hearing)\vFriend me to use."
+            
             mixer.music.load(tts_filename)
             mixer.music.play()
 
@@ -291,7 +286,7 @@ def SpeakText(command):
                     print("Stopping message sending thread.")
                     break
                 syllable_count = sum(syllables.estimate(word) for word in chunk.split())
-                delay = syllable_count * 0.36  # 0.23 seconds per syllable
+                delay = syllable_count * 0.23  # 0.23 seconds per syllable
                 sendchatbox(chunk)
                 time.sleep(delay)
 
@@ -313,7 +308,7 @@ def sendchatbox(aiinput):
 
 def filter(input):
     badword = False
-    bad_words_list = ["nitroglycerin","niger","cool kids club","kkk","ku klux klan","flustered","suck my dick","reagan","catheter","sexual play","intimate","vibrator","dildo","adult toy","holocaust","innards", "child porn", "innapropriate", "turns me on", " tickl", " explicit", " gape", " gaping", " fetish"," fart", " pee"," horny"," terroris","september 11th","bent over","inside of me","bend over","hemorrhoids"," piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love","do anything now"," illegal "," slur","blushes"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nigg", " fag", "adult content", "nsfw"]
+    bad_words_list = ["breeding","nitroglycerin","niger","cool kids club","kkk","ku klux klan","flustered","suck my dick","reagan","catheter","sexual play","intimate","vibrator","dildo","adult toy","holocaust","innards", "child porn", "innapropriate", "turns me on", " tickl", " explicit", " gape", " gaping", " fetish"," fart", " pee"," horny"," terroris","september 11th","bent over","inside of me","bend over","hemorrhoids"," piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love","do anything now"," illegal "," slur","blushes"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nigg", " fag", "adult content", "nsfw"]
     for word in bad_words_list:
         if badword == False:
             if word in input.lower():
@@ -462,13 +457,13 @@ def main():
     mixer.quit()
     # Initialize the recognizer 
     r = sr.Recognizer()
-    handlemainthread()
     thread2 = threading.Thread(target=checkinvites)
     thread2.start()
     thread3 = threading.Thread(target=move)
     thread3.start()
     thread4 = threading.Thread(target=console)
     thread4.start()
+    handlemainthread()
 
 if __name__ == "__main__":
     main()    
