@@ -1,4 +1,3 @@
-
 from characterai import pycai
 import speech_recognition as sr
 from gtts import gTTS
@@ -258,7 +257,7 @@ def SpeakText(command):
             globals()["num"] += 1
 
             # Schedule file deletion after playback
-            threading.Timer(mp3Length + 120, lambda: os.remove(tts_filename)).start()
+            
 
         except Exception as e:
             print(f"SpeakText error: {e}")
