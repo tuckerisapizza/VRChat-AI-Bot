@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from functools import cache
 from characterai import pycai
 import speech_recognition as sr
@@ -324,46 +325,56 @@ def checkforreset(text):
     else:
         return False
     
-def checkforcommands(combined, prompt):
+def checkforcommands(combined: str, prompt: str) -> None:
     global isemoting, movementpaused
-    
+
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     response = combined.lower()
     isemoting = True
-    if "forward" in prompt:
-        client.send_message("/input/MoveForward", [1])
-        time.sleep(2)
-        client.send_message("/input/MoveForward", [0])
-    if "backward" in prompt:
-        client.send_message("/input/MoveBackward", [1])
-        time.sleep(2)
-        client.send_message("/input/MoveBackward", [0])
-    if "left" in prompt:
-        client.send_message("/input/LookLeft", [1])
-        time.sleep(.45)       
-        client.send_message("/input/LookLeft", [0])
-    if "right" in prompt and not "alright" in prompt:
-        client.send_message("/input/LookRight", [1])
-        time.sleep(.45)       
-        client.send_message("/input/LookRight", [0])
+
+    futures = []
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        def command(address: str, sleep: float) -> None:
+            print(address, 1)
+            client.send_message(address, [1])
+            time.sleep(sleep)
+            print(address, 0)
+            client.send_message(address, [0])
+
+        if "forward" in prompt:
+            futures.append(executor.submit(command, "/input/MoveForward", 2.0))
+        if "backward" in prompt:
+            futures.append(executor.submit(command, "/input/MoveBackward", 2.0))
+        if "left" in prompt:
+            futures.append(executor.submit(command, "/input/LookLeft", 0.45))
+        if "right" in prompt and "alright" not in prompt:
+            futures.append(executor.submit(command, "/input/LookRight", 0.45))
+
     if "play" in response and "spotify" in response:
         SpeakText("Sorry, Spotify support isn't currently available.")
     if "play" in response and "youtube" in response:
         SpeakText("Sorry, Youtube support isn't currently available.")
     if "follow" in prompt:
         SpeakText("Sorry, the bot cannot currently follow you.")
+
     if "pause" in response and "move" in response:
         movementpaused = True
-    else:
-        if "unpause" in response and "move" in response:
-            movementpaused = False
-        
-    if "moving" in prompt or "move" in prompt and "don't" in prompt or "stop" in prompt or "start" in prompt or "pause" in prompt:
-        if movementpaused == False:
-            movementpaused = True
-        else:
-            movementpaused = False
+    elif "unpause" in response and "move" in response:
+        movementpaused = False
+
+    if (
+        "moving" in prompt
+        or "move" in prompt
+        and "don't" in prompt
+        or "stop" in prompt
+        or "start" in prompt
+        or "pause" in prompt
+    ):
+        movementpaused = not movementpaused
     isemoting = False
+
+    for future in futures:
+        future.result()
 
 def checkforemotes(response):
     global isemoting
