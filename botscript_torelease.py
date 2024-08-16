@@ -24,34 +24,24 @@ message_thread = None
 is_talking = False
 mp3Length = 0
 
-global resets #keeps track of if the bot breaks and restarts it
-globals()["resets"] = 0
-global bottitle # the bots title used in chatboxes
-globals()["bottitle"] = "🐝Tigerbee Bot🐝"
-global listencount #keeps track of how many times the bot has gone without a prompt
-globals()["listencount"] = 0
-global isemoting
-globals()["isemoting"] = False
-global movementpaused
-globals()["movementpaused"] = False
-global consoleenabled
-globals()["consoleenabled"] = False
-global num
-globals()["num"] = 0
+resets = 0 #keeps track of if the bot breaks and restarts it
+bottitle = "🐝Tigerbee Bot🐝" # the bots title used in chatboxes
+listencount = 0 #keeps track of how many times the bot has gone without a prompt
+isemoting = False
+movementpaused = False
+consoleenabled = False
+num = 0
 
 #debug variables
-global printnumgen
-globals()["printnumgen"] = False
-global printtextbox
-globals()["printtextbox"] = True
-global botenabled
-globals()["botenabled"] = True
-global speechregenabled
-globals()["speechregenabled"] = True
-global notiflog
-globals()["notiflog"] = False
+printnumgen = False
+printtextbox = True
+botenabled = True
+speechregenabled = True
+notiflog = False
 
 def mainthread():
+    global resets, listencount
+    
     char = credentials.CAI_CHARACTER
     client = pycai.Client(credentials.CAI_API_KEY)
     me = client.get_me()
@@ -60,7 +50,7 @@ def mainthread():
             char, me.id
         )
         print(f'{answer.name}: {answer.text}')
-        if globals()["resets"] > 0:
+        if resets > 0:
             SpeakText("Bot reset. Please try again.")
         else:
             SpeakText("Updated bot. " + answer.text)
@@ -68,7 +58,7 @@ def mainthread():
         while(True):
             recognizer = sr.Recognizer()
             with sr.Microphone() as source:
-                globals()["listencount"] = globals()["listencount"] + 1
+                listencount = listencount + 1
                 # Adjust for ambient noise
                 try:
                     # Capture audio input
@@ -92,7 +82,7 @@ def mainthread():
                             print(f'BAD WORD FOUND in response "{message.text}"')
                             SpeakText("Response is innapropriate. Please try again.")
                         else:
-                            globals()["listencount"] = 0
+                            listencount = 0
                             print(f'{message.name}: {message.text}')
                             if checkforreset(message.text + text):
                                 break
@@ -101,21 +91,23 @@ def mainthread():
                             checkforcommands(message.text + text,text)
                         
                 except sr.WaitTimeoutError:
-                    if globals()["listencount"] > 12:
+                    if listencount > 12:
                         sendchatbox("Stand in my circle to talk to me!\v(I'm hard of hearing)")
-                        globals()["listencount"] = 0
+                        listencount = 0
                 except sr.UnknownValueError:
                     print("Speech recognition could not understand audio.")
                 except sr.RequestError as e:
                     print(f"Could not request results from Google Speech Recognition service; {e}")
 
 def move():  
+    global isemoting, movementpaused, printnumgen
+    
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     while (True):
-        if globals()["isemoting"] == False and globals()["movementpaused"] == False:
+        if isemoting == False and movementpaused == False:
             time.sleep(2.6)
             num = random.randrange(1, 8)
-            if globals()["printnumgen"]:
+            if printnumgen:
                 print(num)
             if num == 1:
                 client.send_message("/input/Jump", [1])
@@ -144,19 +136,23 @@ def move():
                 client.send_message("/input/LookRight", [0])
                 
 def console():
+    global consoleenabled, bottitle
+    
     while True:
-        if globals()["consoleenabled"] == True:
+        if consoleenabled == True:
             text = input()
-            globals()["bottitle"] = "||Message from Creator||"
+            bottitle = "||Message from Creator||"
             if not "/" in text: #to run commands without the bot speaking it
                 SpeakText(text)
             checkforreset(text)
             checkforcommands(text, text)
             checkforemotes(text)
             debugcommandscheck(text)
-            globals()["bottitle"] = "🐝Tigerbee Bot🐝"
+            bottitle = "🐝Tigerbee Bot🐝"
 
 def checkinvites():
+    global consoleenabled, notiflog
+    
     configuration = vrchatapi.Configuration(
         username = credentials.VRCHAT_USER,
         password = credentials.VRCHAT_PASSWORD,
@@ -184,10 +180,10 @@ def checkinvites():
             print("Exception when calling API: %s\n", e)
         #
         print("Logged in as:", current_user.display_name)
-        globals()["consoleenabled"] = True
+        consoleenabled = True
         while(True):
             try:
-                if globals()["notiflog"]:
+                if notiflog:
                     print("notifications checked!")
                 notifications = notifications_api.NotificationsApi(api_client).get_notifications()
                 for notification in notifications:
@@ -207,6 +203,8 @@ def SpeakText(command):
         global is_talking
         global stop_event
         global message_thread
+        global num
+        
         mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)")
         sendchatbox("Generating Text to Speech...")
         # Stop any existing playback or message thread
@@ -219,14 +217,14 @@ def SpeakText(command):
 
         # Create and save TTS output
         tts = gTTS(command.replace(":", " colon "), lang='en')
-        tts_filename = f"{globals()['num']}.mp3"
-        tts.save(f"{globals()['num']}norm.mp3")
+        tts_filename = f"{num}.mp3"
+        tts.save(f"{num}norm.mp3")
         
-        audio = AudioSegment.from_file(str(globals()["num"]) + "norm.mp3")
+        audio = AudioSegment.from_file(str(num) + "norm.mp3")
         # Apply speed up factor
         audio = audio.speedup(playback_speed=1.2)
         # Export modified audio
-        audio.export(str(globals()["num"]) + ".mp3", format="mp3")
+        audio.export(str(num) + ".mp3", format="mp3")
 
         # Check MP3 length
         audio_temp = MP3(tts_filename)
@@ -257,7 +255,7 @@ def SpeakText(command):
             mixer.music.play()
 
             # Increment the global num counter
-            globals()["num"] += 1
+            num += 1
 
             # Schedule file deletion after playback
             
@@ -300,12 +298,14 @@ def SpeakText(command):
         sendchatbox("Text to speech has failed. Please contact the owner of this bot.\v" + Exception)
 
 def sendchatbox(aiinput):
-    messagestring = "%s\v%s" % (globals()["bottitle"], aiinput)
+    global bottitle, printtextbox
+    
+    messagestring = "%s\v%s" % (bottitle, aiinput)
     if len(messagestring) > 144:
         messagestring = messagestring[:140] + "..."
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000) 
     client.send_message("/chatbox/input", [messagestring, True, False])
-    if globals()["printtextbox"]:
+    if printtextbox:
         print(messagestring)
 
 @cache
@@ -325,9 +325,11 @@ def checkforreset(text):
         return False
     
 def checkforcommands(combined, prompt):
+    global isemoting, movementpaused
+    
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     response = combined.lower()
-    globals()["isemoting"] = True
+    isemoting = True
     if "forward" in prompt:
         client.send_message("/input/MoveForward", [1])
         time.sleep(2)
@@ -351,23 +353,25 @@ def checkforcommands(combined, prompt):
     if "follow" in prompt:
         SpeakText("Sorry, the bot cannot currently follow you.")
     if "pause" in response and "move" in response:
-        globals()["movementpaused"] = True
+        movementpaused = True
     else:
         if "unpause" in response and "move" in response:
-            globals()["movementpaused"] = False
+            movementpaused = False
         
     if "moving" in prompt or "move" in prompt and "don't" in prompt or "stop" in prompt or "start" in prompt or "pause" in prompt:
-        if globals()["movementpaused"] == False:
-            globals()["movementpaused"] = True
+        if movementpaused == False:
+            movementpaused = True
         else:
-            globals()["movementpaused"] = False
-    globals()["isemoting"] = False
+            movementpaused = False
+    isemoting = False
 
 def checkforemotes(response):
+    global isemoting
+    
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     response = response.lower()
     emote = 0
-    globals()["isemoting"] = True
+    isemoting = True
     if "point" in response or "look" in response or "!" in response:
         emote = 3
     if "wave" in response or "hi " in response or "hello" in response:
@@ -389,65 +393,69 @@ def checkforemotes(response):
         print("emote # " + str(emote))
         time.sleep(2)
         client.send_message("/avatar/parameters/VRCEmote", [int(0)])      
-    globals()["isemoting"] = False
+    isemoting = False
 
 def debugcommandscheck(text):
+    global printnumgen, botenabled, printtextbox, speechregenabled, notiflog, movementpaused, speechrecdone
+    
     if "printnumgen" in text:
-        if globals()["printnumgen"]:
-            globals()["printnumgen"] = False
+        if printnumgen:
+            printnumgen = False
         else:
-            globals()["printnumgen"] = True
-        print(globals()["printnumgen"])
+            printnumgen = True
+        print(printnumgen)
 
     if "botenabled" in text:
-        if globals()["botenabled"]:
-            globals()["botenabled"] = False
+        if botenabled:
+            botenabled = False
         else:
-            globals()["botenabled"] = True
-        print(globals()["botenabled"])
+            botenabled = True
+        print(botenabled)
 
     if "printtextbox" in text:
-        if globals()["printtextbox"]:
-            globals()["printtextbox"] = False
+        if printtextbox:
+            printtextbox = False
         else:
-            globals()["printtextbox"] = True
-        print(globals()["printtextbox"])
+            printtextbox = True
+        print(printtextbox)
 
     if "speechregenabled" in text:
-        if globals()["speechregenabled"]:
-            globals()["speechregenabled"] = False
+        if speechregenabled:
+            speechregenabled = False
         else:
-            globals()["speechregenabled"] = True
-        print(globals()["speechregenabled"])
+            speechregenabled = True
+        print(speechregenabled)
 
     if "notiflog" in text:
-        if globals()["notiflog"]:
-            globals()["notiflog"] = False
+        if notiflog:
+            notiflog = False
         else:
-            globals()["notiflog"] = True
-        print(globals()["notiflog"])
+            notiflog = True
+        print(notiflog)
 
     if "movement" in text:
-        if globals()["movementpaused"]:
-            globals()["movementpaused"] = False
+        if movementpaused:
+            movementpaused = False
         else:
-            globals()["movementpaused"] = True
-        print(globals()["movementpaused"])
+            movementpaused = True
+        print(movementpaused)
 
     if "speechrecdone" in text:
-        if globals()["speechrecdone"]:
-            globals()["speechrecdone"] = False
+        if speechrecdone:
+            speechrecdone = False
         else:
-            globals()["speechrecdone"] = True
-        print(globals()["speechrecdone"])
+            speechrecdone = True
+        print(speechrecdone)
         
 
 def handlemainthread():
+    global resets
+    
     while(True):
         thread = threading.Thread(target=mainthread)
         thread.start()
         thread.join()
-        globals()["resets"] = globals()["resets"] + 1
+        resets = resets + 1
                                     
 
 def main():
