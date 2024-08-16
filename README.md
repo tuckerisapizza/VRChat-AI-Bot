@@ -1,31 +1,58 @@
 # VRChat-AI-Bot
 
-My attempt at making a VRChat AI bot. I'd say the result is extremely good.
-Runs on practically any hardware, including integrated graphics.
-As long as the hardware can run VRChat desktop at atleast 15 fps.
-This is a result of all processing done remotely.
+## Overview
+Welcome to **VRChat-AI-Bot**, my personal endeavor in creating a VRChat AI bot. The results have been impressive, with the bot running on nearly any hardware that can handle VRChat desktop at a minimum of 15 FPS. This is made possible by performing all the processing remotely.
 
-The bot utilizes Character AI for custom AI chatbots, Google Speech to text, and Google Text to speech.
+The bot leverages the power of **Character AI** for custom AI chatbots, **Google Speech-to-Text**, and **Google Text-to-Speech** to create an engaging experience.
 
-VIEW OUR BRANCHES FOR OTHER AI MODEL ARCHITECTURES, main IS CHARACTER AI
+### Important Note
+Check out our different branches for other AI model architectures. The `main` branch focuses on Character AI.
 
-# README
+---
 
-download both botscript.py, credentials.py, and requirements.txt and put them all in the same folder
+## Getting Started
 
-i recommend you setup your audio pipelines before you even go installing packages
+### 1. Download Required Files
+To get started, download the following files and place them in the same directory:
+- `botscript.py`
+- `credentials.py`
+- `requirements.txt`
 
-speaker needs to be mapped to microphone using VB-Audio Cable (for text to speech)
+### 2. Set Up Audio Pipelines
+Before installing any packages, ensure that your audio pipelines are properly set up:
 
-microphone needs to be mapped to speaker using a physical aux cable connecting a speaker output to microphone input (for speech recognition)
+- **Text-to-Speech:** Use **VB-Audio Cable** to map your speaker output to the microphone input.
+- **Speech Recognition:** Connect a speaker output to the microphone input using a physical aux cable.
 
-then, install packages using requirements.txt
+### 3. Install Dependencies
+Once your audio pipelines are configured, install the necessary packages using `requirements.txt`:
+```bash
+pip install -r requirements.txt
+```
 
-character AI api key can be found here (https://docs.kram.cat/auth.html) run the first script on this page, input the link they email you, and thats your key for credentials.py
+### 4. Configure Credentials
+#### Character AI
+- Obtain your Character AI API key by following [this guide](https://docs.kram.cat/auth.html). Run the script on the page, input the link they email you, and use the key in `credentials.py`.
+- Input a Character AI character into `credentials.py`.
 
-input a character ai character into credentials.py
+#### VRChat
+- Input your VRChat credentials and custom user agent into `credentials.py`.
 
-input your vrchat credentials and custom user agent into credentials.py
+### 5. Testing
+To verify that everything is set up correctly, play a YouTube video. The script should detect the video's audio, and the bot should respond accordingly.
 
-after that, test if it works by playing a youtube video and see if the script detects the youtube video's audio and the bot responds to it
-good luck!
+---
+
+## Additional Information
+
+### Dependencies
+- **Character AI**
+- **VB-Audio Cable** for audio routing
+
+### Contributing
+Feel free to fork this repository and submit pull requests if you have any improvements or new features you'd like to add.
+
+### License
+This project is licensed under the MIT License - see the `LICENSE` file for details.
+
+Good luck, and have fun building your VRChat AI bot!
