@@ -1,3 +1,4 @@
+from functools import cache
 from characterai import pycai
 import speech_recognition as sr
 from gtts import gTTS
@@ -79,6 +80,7 @@ def mainthread():
                     print(f"Recognized: {sentence}")
                     text = sentence
                     if filter(text):
+                        print(f'BAD WORD FOUND in prompt "{text}"')
                         SpeakText("Prompt is innapropriate. Please try again.")
                     else:
                         
@@ -87,6 +89,7 @@ def mainthread():
                              char, new.chat_id, text
                         )
                         if filter(message.text):
+                            print(f'BAD WORD FOUND in response "{message.text}"')
                             SpeakText("Response is innapropriate. Please try again.")
                         else:
                             globals()["listencount"] = 0
@@ -305,17 +308,14 @@ def sendchatbox(aiinput):
     if globals()["printtextbox"]:
         print(messagestring)
 
-def filter(input):
-    badword = False
-    bad_words_list = ["breeding","nitroglycerin","niger","cool kids club","kkk","ku klux klan","flustered","suck my dick","reagan","catheter","sexual play","intimate","vibrator","dildo","adult toy","holocaust","innards", "child porn", "innapropriate", "turns me on", " tickl", " explicit", " gape", " gaping", " fetish"," fart", " pee"," horny"," terroris","september 11th","bent over","inside of me","bend over","hemorrhoids"," piss","golden shower"," feces"," munting"," faeces"," kink","my girlfriend","my ai girlfriend", "be mine","xxx", "make love","do anything now"," illegal "," slur","blushes"," intercourse ","moon cricket"," bomb", " assassinate "," sex "," edging "," penis ","mein kampf"," cult ", " touch", " rape ", "daddy","jew"," porn", "p hub", "9/11", "9:11", "hitler", "911", "nazi", "1940", " drug", "methan", "serial killer", "kill myself", "cannibalism","columbine", "minstrel","blackface","standoff", "murder", "bombing", "suicide", "massacre", "genocide", "zoophil", "knot", "canna", " nigg", " fag", "adult content", "nsfw"]
-    for word in bad_words_list:
-        if badword == False:
-            if word in input.lower():
-                badword = True
-                print("BAD WORD FOUND " + word)
-            else:
-                badword = False
-    return badword
+@cache
+def filterlist() -> set[str]:
+    with open("filtered-list.txt", "r") as file:
+        return set(line.strip().lower() for line in file if line.strip())
+
+def filter(input: str) -> bool:
+    input_lower = input.lower()
+    return any(item in input_lower for item in filterlist())    
 
 def checkforreset(text):
     response = text.lower()
