@@ -457,18 +457,9 @@ def debugcommandscheck(text):
             speechrecdone = True
         print(speechrecdone)
         
-
-def handlemainthread():
+def main():
     global resets
     
-    while(True):
-        thread = threading.Thread(target=mainthread)
-        thread.start()
-        thread.join()
-        resets = resets + 1
-                                    
-
-def main():
     mixer.init()
     print("Outputs:", devices.audio.get_audio_device_names(False))
     mixer.quit()
@@ -480,7 +471,10 @@ def main():
     thread3.start()
     thread4 = threading.Thread(target=console)
     thread4.start()
-    handlemainthread()
+    
+    while True:
+        mainthread()
+        resets = resets + 1
 
 if __name__ == "__main__":
     main()    
