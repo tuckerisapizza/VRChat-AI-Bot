@@ -3,12 +3,10 @@ from functools import cache
 from characterai import pycai
 import speech_recognition as sr
 from gtts import gTTS
-from io import BytesIO
 from pygame import mixer, _sdl2 as devices
-import os
-from pythonosc import osc_server, udp_client
+from pythonosc import udp_client
 import vrchatapi
-from vrchatapi.api import authentication_api, invite_api, notifications_api, worlds_api, instances_api, groups_api
+from vrchatapi.api import authentication_api, notifications_api, groups_api
 from vrchatapi.exceptions import UnauthorizedException
 from vrchatapi.models.two_factor_auth_code import TwoFactorAuthCode
 from vrchatapi.models.two_factor_email_code import TwoFactorEmailCode
@@ -20,6 +18,7 @@ import time
 import credentials
 from mutagen.mp3 import MP3
 import syllables
+
 stop_event = threading.Event()
 message_thread = None
 is_talking = False
