@@ -315,7 +315,11 @@ def filterlist() -> set[str]:
 
 def filter(input: str) -> bool:
     input_lower = input.lower()
-    return any(item in input_lower for item in filterlist())    
+    for item in filterlist():
+        if item in input_lower:
+            print(f'BAD WORD FOUND in prompt "{item}"')
+            return True
+    return False
 
 def checkforreset(text):
     response = text.lower()
