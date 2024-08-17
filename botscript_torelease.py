@@ -407,7 +407,6 @@ def checkforemotes(response):
 
 def debugcommandscheck(text):
     global printnumgen, botenabled, printtextbox, speechregenabled, notiflog, movementpaused, speechrecdone
-    
     if "printnumgen" in text:
         if printnumgen:
             printnumgen = False
@@ -473,8 +472,10 @@ def main():
     thread4.start()
     
     while True:
-        mainthread()
-        resets = resets + 1
+        thread = threading.Thread(target=mainthread)
+        thread.start()
+        thread.join()
+        resets += 1
 
 if __name__ == "__main__":
     main()    
