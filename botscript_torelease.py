@@ -409,56 +409,35 @@ def checkforemotes(response):
         client.send_message("/avatar/parameters/VRCEmote", [int(0)])      
     isemoting = False
 
-def debugcommandscheck(text):
-    global printnumgen, botenabled, printtextbox, speechregenabled, notiflog, movementpaused, speechrecdone
+def debugcommandscheck(text: str) -> None:
     if "printnumgen" in text:
-        if printnumgen:
-            printnumgen = False
-        else:
-            printnumgen = True
-        print(printnumgen)
-
+        global printnumgen
+        printnumgen = not printnumgen
+        print(f"printnumgen={printnumgen}")
     if "botenabled" in text:
-        if botenabled:
-            botenabled = False
-        else:
-            botenabled = True
-        print(botenabled)
-
+        global botenabled
+        botenabled = not botenabled
+        print(f"botenabled={botenabled}")
     if "printtextbox" in text:
-        if printtextbox:
-            printtextbox = False
-        else:
-            printtextbox = True
-        print(printtextbox)
-
+        global printtextbox
+        printtextbox = not printtextbox
+        print(f"printtextbox={printtextbox}")
     if "speechregenabled" in text:
-        if speechregenabled:
-            speechregenabled = False
-        else:
-            speechregenabled = True
-        print(speechregenabled)
-
+        global speechregenabled
+        speechregenabled = not speechregenabled
+        print(f"speechregenabled={speechregenabled}")
     if "notiflog" in text:
-        if notiflog:
-            notiflog = False
-        else:
-            notiflog = True
-        print(notiflog)
-
+        global notiflog
+        notiflog = not notiflog
+        print(f"notiflog={notiflog}")
     if "movement" in text:
-        if movementpaused:
-            movementpaused = False
-        else:
-            movementpaused = True
-        print(movementpaused)
-
+        global movementpaused
+        movementpaused = not movementpaused
+        print(f"movementpaused={movementpaused}")
     if "speechrecdone" in text:
-        if speechrecdone:
-            speechrecdone = False
-        else:
-            speechrecdone = True
-        print(speechrecdone)
+        global speechrecdone
+        speechrecdone = not speechrecdone
+        print(f"speechrecdone={speechrecdone}")
         
 def main():
     global resets
