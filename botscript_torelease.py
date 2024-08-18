@@ -472,10 +472,12 @@ def main():
     thread4.start()
     
     while True:
-        thread = threading.Thread(target=mainthread)
-        thread.start()
-        thread.join()
-        resets += 1
+        try:
+            mainthread()
+        except Exception:
+            ...
+        finally:
+            resets += 1
 
 if __name__ == "__main__":
     main()    
