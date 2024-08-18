@@ -70,7 +70,7 @@ def mainthread():
                     print(f"Recognized: {sentence}")
                     text = sentence
                     if filter(text):
-                        print(f'BAD WORD FOUND in prompt "{text}"')
+                        print('BAD WORD FOUND in prompt!')
                         SpeakText("Prompt is innapropriate. Please try again.")
                     else:
                         
@@ -79,7 +79,7 @@ def mainthread():
                              char, new.chat_id, text
                         )
                         if filter(message.text):
-                            print(f'BAD WORD FOUND in response "{message.text}"')
+                            print('BAD WORD FOUND in response!')
                             SpeakText("Response is innapropriate. Please try again.")
                         else:
                             listencount = 0
@@ -315,11 +315,7 @@ def filterlist() -> set[str]:
 
 def filter(input: str) -> bool:
     input_lower = input.lower()
-    for item in filterlist():
-        if item in input_lower:
-            print(f'BAD WORD FOUND in prompt "{item}"')
-            return True
-    return False
+    return any(item in input_lower for item in filterlist())
 
 def checkforreset(text):
     response = text.lower()

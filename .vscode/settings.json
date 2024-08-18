@@ -1,0 +1,14 @@
+{
+    "editor.codeActionsOnSave": {
+        "source.convertImportFormat": "never",
+        "source.fixAll": "never",
+        "source.fixAll.pylance": "never",
+        "source.fixAll.ruff": "never",
+        "source.organizeImports": "never",
+        "source.organizeImports.ruff": "never",
+        "source.unusedImports": "never"
+    },
+    "editor.trimAutoWhitespace": false,
+    "editor.formatOnSave": false,
+    "files.trimTrailingWhitespace": false
+}
