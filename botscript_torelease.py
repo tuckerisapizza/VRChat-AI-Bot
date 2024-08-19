@@ -188,6 +188,8 @@ def checkinvites():
                     if notification.type == 'friendRequest':
                         notifications_api.NotificationsApi(api_client).accept_friend_request(notification.id)
                         print("accepted friend!")
+                        if not filter(notification.sender_username):  
+                            SpeakText(f"Thanks for friending me, {notification.sender_username}! :3")
                         invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
                         groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
                             
