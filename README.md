@@ -1,4 +1,4 @@
-# VRChat-AI-Bot
+# VRChat-AI-Bot **WORK IN PROGRESS HUGGINGCHAT BRANCH**
 
 My attempt at making a VRChat AI bot. I'd say the result is extremely good.
 Runs on practically any hardware, including integrated graphics, as long as the hardware can run VRChat desktop with at least 15 FPS. This is a result of all processing done remotely.
