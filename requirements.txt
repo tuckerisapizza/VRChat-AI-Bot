@@ -1,7 +1,7 @@
 SpeechRecognition
 gTTS
 pygame
-characterai
+hugchat
 python-osc
 vrchatapi
 pydub
