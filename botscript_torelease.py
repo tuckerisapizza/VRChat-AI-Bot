@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from functools import cache
-from characterai import pycai
+from hugchat import hugchat
+from hugchat.login import Login
 import speech_recognition as sr
 from gtts import gTTS
 from pygame import mixer, _sdl2 as devices
@@ -41,61 +42,62 @@ notiflog = False
 
 def mainthread():
     global resets, listencount
-    
-    char = credentials.CAI_CHARACTER
-    client = pycai.Client(credentials.CAI_API_KEY)
-    me = client.get_me()
-    with client.connect() as chat:
-        new, answer = chat.new_chat(
-            char, me.id
-        )
-        print(f'{answer.name}: {answer.text}')
-        if resets > 0:
-            SpeakText("Bot reset. Please try again.")
-        else:
-            SpeakText("Updated bot. " + answer.text)
-        sendchatbox("Initializing Speech Recognition...")
-        while(True):
-            recognizer = sr.Recognizer()
-            with sr.Microphone() as source:
-                listencount = listencount + 1
-                # Adjust for ambient noise
-                try:
-                    # Capture audio input
-                    audio = recognizer.listen(source, timeout=1.5, phrase_time_limit=8)  # Adjust timeout as needed
-                    print("Recognizing...")
-                    # Use Google Speech Recognition
-                    sentence = recognizer.recognize_google(audio)
-                    # Print recognized sentence
-                    print(f"Recognized: {sentence}")
-                    text = sentence
-                    if filter(text):
-                        SpeakText("Prompt is innapropriate. Please try again.")
+    chatbotname = credentials.CHATBOT_NAME
+    EMAIL = credentials.HUGGINGFACE_EMAIL
+    PASSWD = credentials.HUGGINGFACE_PASSWORD
+    cookie_path_dir = "./cookies/" # NOTE: trailing slash (/) is required to avoid errors
+    sign = Login(EMAIL, PASSWD)
+    cookies = sign.login(cookie_dir_path=cookie_path_dir, save_cookies=True)
+    chatbot = hugchat.ChatBot(cookies=cookies.get_dict(),system_prompt=credentials.SYSTEM_PROMPT)  # or cookie_path="usercookies/<email>.json"
+    message_result = chatbot.chat("Please give your users a kind greeting.") # note: message_result is a generator, the method will return immediately.
+    answer: str = message_result.wait_until_done() # you can also print(message_result) directly. 
+    print(f'{chatbotname}: {answer}')
+    if resets > 0:
+        SpeakText("Bot reset. Please try again.")
+    else:
+        SpeakText("Updated bot. " + answer)
+    sendchatbox("Initializing Speech Recognition...")
+    while(True):
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            listencount = listencount + 1
+            try:
+                # Capture audio input
+                audio = recognizer.listen(source, timeout=1.5, phrase_time_limit=6)  # Adjust timeout as needed
+                print("Recognizing...")
+                # Use Google Speech Recognition
+                sentence = recognizer.recognize_google(audio)
+                # Print recognized sentence
+                print(f"Recognized: {sentence}")
+                text = sentence
+                if filter(text):
+                    print(f'BAD WORD FOUND in prompt "{text}"')
+                    SpeakText("Prompt is innapropriate. Please try again.")
+                else:
+                    if checkforreset(text):
+                        break
+                    message_result = chatbot.chat(text)
+                    sendchatbox("Thinking...\vPrompt: " + text)
+                    answer: str = message_result.wait_until_done() # you can also print(message_result) directly. 
+                    if filter(answer):
+                        print('BAD WORD FOUND in response ')
+                        SpeakText("Response is innapropriate. Please try again.")
                     else:
-                        
-                        sendchatbox("Thinking...\vPrompt: " + text)
-                        message = chat.send_message(
-                             char, new.chat_id, text
-                        )
-                        if filter(message.text):
-                            SpeakText("Response is innapropriate. Please try again.")
-                        else:
-                            listencount = 0
-                            print(f'{message.name}: {message.text}')
-                            if checkforreset(message.text + text):
-                                break
-                            SpeakText(message.text)
-                            checkforemotes(message.text + text)
-                            checkforcommands(message.text + text,text)
-                        
-                except sr.WaitTimeoutError:
-                    if listencount > 12:
-                        sendchatbox("Stand in my circle to talk to me!\v(I'm hard of hearing)")
                         listencount = 0
-                except sr.UnknownValueError:
-                    print("Speech recognition could not understand audio.")
-                except sr.RequestError as e:
+                        print(f'{chatbotname}: {answer}')
+                        SpeakText(answer)
+                        checkforemotes(answer)
+                        checkforcommands(answer, answer)
+                        
+            except sr.WaitTimeoutError:
+                if listencount > 12:
+                    sendchatbox("Stand in my circle to talk to me!\v(I'm hard of hearing)")
+                    listencount = 0
+            except sr.UnknownValueError:
+                print("Speech recognition could not understand audio.")
+            except sr.RequestError as e:
                     print(f"Could not request results from Google Speech Recognition service; {e}")
+    
 
 def move():  
     global isemoting, movementpaused, printnumgen
@@ -189,7 +191,7 @@ def checkinvites():
                         notifications_api.NotificationsApi(api_client).accept_friend_request(notification.id)
                         print("accepted friend!")
                         if not filter(notification.sender_username):  
-                            SpeakText(f"Thanks for friending me, {notification.sender_username}! :3")
+                            SpeakText(f"Thanks for friending me, {notification.sender_username}!")
                         invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
                         groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
                             
@@ -315,12 +317,7 @@ def filterlist() -> set[str]:
 
 def filter(input: str) -> bool:
     input_lower = input.lower()
-    found_items = {item for item in filterlist() if item in input_lower}
-
-    if found_items:
-        print(f"BAD WORD(s) FOUND in prompt: {found_items}")
-        return True
-    return False
+    return any(item in input_lower for item in filterlist())    
 
 def checkforreset(text):
     response = text.lower()
@@ -410,35 +407,56 @@ def checkforemotes(response):
         client.send_message("/avatar/parameters/VRCEmote", [int(0)])      
     isemoting = False
 
-def debugcommandscheck(text: str) -> None:
+def debugcommandscheck(text):
+    global printnumgen, botenabled, printtextbox, speechregenabled, notiflog, movementpaused, speechrecdone
     if "printnumgen" in text:
-        global printnumgen
-        printnumgen = not printnumgen
-        print(f"printnumgen={printnumgen}")
+        if printnumgen:
+            printnumgen = False
+        else:
+            printnumgen = True
+        print(printnumgen)
+
     if "botenabled" in text:
-        global botenabled
-        botenabled = not botenabled
-        print(f"botenabled={botenabled}")
+        if botenabled:
+            botenabled = False
+        else:
+            botenabled = True
+        print(botenabled)
+
     if "printtextbox" in text:
-        global printtextbox
-        printtextbox = not printtextbox
-        print(f"printtextbox={printtextbox}")
+        if printtextbox:
+            printtextbox = False
+        else:
+            printtextbox = True
+        print(printtextbox)
+
     if "speechregenabled" in text:
-        global speechregenabled
-        speechregenabled = not speechregenabled
-        print(f"speechregenabled={speechregenabled}")
+        if speechregenabled:
+            speechregenabled = False
+        else:
+            speechregenabled = True
+        print(speechregenabled)
+
     if "notiflog" in text:
-        global notiflog
-        notiflog = not notiflog
-        print(f"notiflog={notiflog}")
+        if notiflog:
+            notiflog = False
+        else:
+            notiflog = True
+        print(notiflog)
+
     if "movement" in text:
-        global movementpaused
-        movementpaused = not movementpaused
-        print(f"movementpaused={movementpaused}")
+        if movementpaused:
+            movementpaused = False
+        else:
+            movementpaused = True
+        print(movementpaused)
+
     if "speechrecdone" in text:
-        global speechrecdone
-        speechrecdone = not speechrecdone
-        print(f"speechrecdone={speechrecdone}")
+        if speechrecdone:
+            speechrecdone = False
+        else:
+            speechrecdone = True
+        print(speechrecdone)
         
 def main():
     global resets
@@ -456,12 +474,10 @@ def main():
     thread4.start()
     
     while True:
-        try:
-            mainthread()
-        except Exception:
-            ...
-        finally:
-            resets += 1
+        thread = threading.Thread(target=mainthread)
+        thread.start()
+        thread.join()
+        resets += 1
 
 if __name__ == "__main__":
     main()    
