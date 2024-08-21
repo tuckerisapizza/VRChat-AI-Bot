@@ -70,7 +70,6 @@ def mainthread():
                     print(f"Recognized: {sentence}")
                     text = sentence
                     if filter(text):
-                        print(f'BAD WORD FOUND in prompt "{text}"')
                         SpeakText("Prompt is innapropriate. Please try again.")
                     else:
                         
@@ -79,7 +78,6 @@ def mainthread():
                              char, new.chat_id, text
                         )
                         if filter(message.text):
-                            print(f'BAD WORD FOUND in response "{message.text}"')
                             SpeakText("Response is innapropriate. Please try again.")
                         else:
                             listencount = 0
@@ -190,6 +188,8 @@ def checkinvites():
                     if notification.type == 'friendRequest':
                         notifications_api.NotificationsApi(api_client).accept_friend_request(notification.id)
                         print("accepted friend!")
+                        if not filter(notification.sender_username):  
+                            SpeakText(f"Thanks for friending me, {notification.sender_username}! :3")
                         invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
                         groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
                             
@@ -315,7 +315,12 @@ def filterlist() -> set[str]:
 
 def filter(input: str) -> bool:
     input_lower = input.lower()
-    return any(item in input_lower for item in filterlist())    
+    found_items = {item for item in filterlist() if item in input_lower}
+
+    if found_items:
+        print(f"BAD WORD(s) FOUND in prompt: {found_items}")
+        return True
+    return False
 
 def checkforreset(text):
     response = text.lower()
@@ -405,56 +410,35 @@ def checkforemotes(response):
         client.send_message("/avatar/parameters/VRCEmote", [int(0)])      
     isemoting = False
 
-def debugcommandscheck(text):
-    global printnumgen, botenabled, printtextbox, speechregenabled, notiflog, movementpaused, speechrecdone
+def debugcommandscheck(text: str) -> None:
     if "printnumgen" in text:
-        if printnumgen:
-            printnumgen = False
-        else:
-            printnumgen = True
-        print(printnumgen)
-
+        global printnumgen
+        printnumgen = not printnumgen
+        print(f"printnumgen={printnumgen}")
     if "botenabled" in text:
-        if botenabled:
-            botenabled = False
-        else:
-            botenabled = True
-        print(botenabled)
-
+        global botenabled
+        botenabled = not botenabled
+        print(f"botenabled={botenabled}")
     if "printtextbox" in text:
-        if printtextbox:
-            printtextbox = False
-        else:
-            printtextbox = True
-        print(printtextbox)
-
+        global printtextbox
+        printtextbox = not printtextbox
+        print(f"printtextbox={printtextbox}")
     if "speechregenabled" in text:
-        if speechregenabled:
-            speechregenabled = False
-        else:
-            speechregenabled = True
-        print(speechregenabled)
-
+        global speechregenabled
+        speechregenabled = not speechregenabled
+        print(f"speechregenabled={speechregenabled}")
     if "notiflog" in text:
-        if notiflog:
-            notiflog = False
-        else:
-            notiflog = True
-        print(notiflog)
-
+        global notiflog
+        notiflog = not notiflog
+        print(f"notiflog={notiflog}")
     if "movement" in text:
-        if movementpaused:
-            movementpaused = False
-        else:
-            movementpaused = True
-        print(movementpaused)
-
+        global movementpaused
+        movementpaused = not movementpaused
+        print(f"movementpaused={movementpaused}")
     if "speechrecdone" in text:
-        if speechrecdone:
-            speechrecdone = False
-        else:
-            speechrecdone = True
-        print(speechrecdone)
+        global speechrecdone
+        speechrecdone = not speechrecdone
+        print(f"speechrecdone={speechrecdone}")
         
 def main():
     global resets
@@ -472,10 +456,12 @@ def main():
     thread4.start()
     
     while True:
-        thread = threading.Thread(target=mainthread)
-        thread.start()
-        thread.join()
-        resets += 1
+        try:
+            mainthread()
+        except Exception:
+            ...
+        finally:
+            resets += 1
 
 if __name__ == "__main__":
     main()    
