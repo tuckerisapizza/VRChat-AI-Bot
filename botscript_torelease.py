@@ -32,6 +32,7 @@ isemoting = False
 movementpaused = False
 consoleenabled = False
 num = 0
+currentinstance = "unknown"
 
 #debug variables
 printnumgen = False
@@ -41,7 +42,7 @@ speechregenabled = True
 notiflog = False
 
 def mainthread():
-    global resets, listencount
+    global resets, listencount, currentinstance
     chatbotname = credentials.CHATBOT_NAME
     EMAIL = credentials.HUGGINGFACE_EMAIL
     PASSWD = credentials.HUGGINGFACE_PASSWORD
@@ -76,7 +77,7 @@ def mainthread():
                 else:
                     if checkforreset(text):
                         break
-                    message_result = chatbot.chat(text)
+                    message_result = chatbot.chat(chatbot.chat('<context_start>World: '+currentinstance+'<context_end>'+'/v<user_start>' +text'<user_end>'))
                     sendchatbox("Thinking...\vPrompt: " + text)
                     answer: str = message_result.wait_until_done() # you can also print(message_result) directly. 
                     if filter(answer):
@@ -151,7 +152,7 @@ def console():
             bottitle = "🐝Tigerbee Bot🐝"
 
 def checkinvites():
-    global consoleenabled, notiflog
+    global consoleenabled, notiflog, currentinstance
     
     configuration = vrchatapi.Configuration(
         username = credentials.VRCHAT_USER,
@@ -194,8 +195,9 @@ def checkinvites():
                             SpeakText(f"Thanks for friending me, {notification.sender_username}!")
                         invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
                         groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
-                            
-                time.sleep(7)  # Check for notifications every 5 seconds
+                currentinstance = current_user.presence.instance
+                print(currentinstance)
+                time.sleep(9)  # Check for notifications every 5 seconds
             except:
                 print("notif error")
 
