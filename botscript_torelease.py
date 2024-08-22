@@ -77,7 +77,7 @@ def mainthread():
                 else:
                     if checkforreset(text):
                         break
-                    message_result = chatbot.chat(chatbot.chat('<context_start>World: '+currentinstance+'<context_end>'+'/v<user_start>' +text'<user_end>'))
+                    message_result = chatbot.chat('<context_start>World: '+currentinstance+'<context_end>'+'/v<user_start>' +text'<user_end>')
                     sendchatbox("Thinking...\vPrompt: " + text)
                     answer: str = message_result.wait_until_done() # you can also print(message_result) directly. 
                     if filter(answer):
