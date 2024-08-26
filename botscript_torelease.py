@@ -24,6 +24,8 @@ message_thread = None
 is_talking = False
 mp3Length = 0
 
+osc = udp_client.SimpleUDPClient("127.0.0.1", 9000)
+
 resets = 0 #keeps track of if the bot breaks and restarts it
 bottitle = "🐝Tigerbee Bot🐝" # the bots title used in chatboxes
 listencount = 0 #keeps track of how many times the bot has gone without a prompt
@@ -99,9 +101,8 @@ def mainthread():
 
 def move():  
     try:
-        global isemoting, movementpaused, printnumgen
+        global isemoting, movementpaused, osc, printnumgen
         
-        client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
         while (True):
             if not isemoting and not movementpaused:
                 time.sleep(2.6)
@@ -109,30 +110,30 @@ def move():
                 if printnumgen:
                     print(num)
                 if num == 1:
-                    client.send_message("/input/Jump", [1])
+                    osc.send_message("/input/Jump", [1])
                     num2 = random.randrange(1,2)
                     #print("jump for " + str(num2) + " seconds")
-                    client.send_message("/input/Jump", [0])
+                    osc.send_message("/input/Jump", [0])
                 if num == 6:
-                    client.send_message("/input/MoveForward", [1])
+                    osc.send_message("/input/MoveForward", [1])
                     num2 = random.randrange(1,2)
                     #print("moving forward for " + str(num2) + " seconds")
                     time.sleep(num2)
-                    client.send_message("/input/MoveForward", [0])
+                    osc.send_message("/input/MoveForward", [0])
                 if num == 4:
-                    client.send_message("/input/LookLeft", [1])
+                    osc.send_message("/input/LookLeft", [1])
                     num2 = random.randrange(10, 75)
                     num3 = num2 / 100
                     #print("left for " + str(num3) + " seconds")
                     time.sleep(num3)
-                    client.send_message("/input/LookLeft", [0])
+                    osc.send_message("/input/LookLeft", [0])
                 if num == 2:
-                    client.send_message("/input/LookRight", [1])
+                    osc.send_message("/input/LookRight", [1])
                     num2 = random.randrange(10, 75)
                     num3 = num2 / 100
                     #print("right for " + str(num3) + " seconds")
                     time.sleep(num3)
-                    client.send_message("/input/LookRight", [0])
+                    osc.send_message("/input/LookRight", [0])
     except KeyboardInterrupt:
         ...
                 
@@ -307,13 +308,12 @@ def SpeakText(command):
         sendchatbox("Text to speech has failed. Please contact the owner of this bot.\v" + Exception)
 
 def sendchatbox(aiinput):
-    global bottitle, printtextbox
+    global bottitle, osc, printtextbox
     
     messagestring = "%s\v%s" % (bottitle, aiinput)
     if len(messagestring) > 144:
         messagestring = messagestring[:140] + "..."
-    client = udp_client.SimpleUDPClient("127.0.0.1", 9000) 
-    client.send_message("/chatbox/input", [messagestring, True, False])
+    osc.send_message("/chatbox/input", [messagestring, True, False])
     if printtextbox:
         print(messagestring)
 
@@ -339,9 +339,8 @@ def checkforreset(text):
         return False
     
 def checkforcommands(combined: str, prompt: str) -> None:
-    global isemoting, movementpaused
+    global isemoting, osc, movementpaused
 
-    client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     response = combined.lower()
     isemoting = True
 
@@ -349,10 +348,10 @@ def checkforcommands(combined: str, prompt: str) -> None:
     with ThreadPoolExecutor(max_workers=4) as executor:
         def command(address: str, sleep: float) -> None:
             print(address, 1)
-            client.send_message(address, [1])
+            osc.send_message(address, [1])
             time.sleep(sleep)
             print(address, 0)
-            client.send_message(address, [0])
+            osc.send_message(address, [0])
 
         if "forward" in prompt:
             futures.append(executor.submit(command, "/input/MoveForward", 2.0))
@@ -390,9 +389,8 @@ def checkforcommands(combined: str, prompt: str) -> None:
         future.result()
 
 def checkforemotes(response):
-    global isemoting
+    global isemoting, osc
     
-    client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     response = response.lower()
     emote = 0
     isemoting = True
@@ -413,10 +411,10 @@ def checkforemotes(response):
     if "die" in response or "dead" in response:
         emote = 8
     if not emote == 0:  
-        client.send_message("/avatar/parameters/VRCEmote", [int(emote)])
+        osc.send_message("/avatar/parameters/VRCEmote", [int(emote)])
         print("emote # " + str(emote))
         time.sleep(2)
-        client.send_message("/avatar/parameters/VRCEmote", [int(0)])      
+        osc.send_message("/avatar/parameters/VRCEmote", [int(0)])      
     isemoting = False
 
 def debugcommandscheck(text: str) -> None:
