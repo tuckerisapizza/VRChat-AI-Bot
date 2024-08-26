@@ -102,7 +102,7 @@ def move():
     
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     while (True):
-        if isemoting == False and movementpaused == False:
+        if not isemoting and not movementpaused:
             time.sleep(2.6)
             num = random.randrange(1, 8)
             if printnumgen:
@@ -137,10 +137,10 @@ def console():
     global consoleenabled, bottitle
     
     while True:
-        if consoleenabled == True:
+        if consoleenabled:
             text = input()
             bottitle = "||Message from Creator||"
-            if not "/" in text: #to run commands without the bot speaking it
+            if "/" not in text: #to run commands without the bot speaking it
                 SpeakText(text)
             checkforreset(text)
             checkforcommands(text, text)
@@ -446,14 +446,10 @@ def main():
     mixer.init()
     print("Outputs:", devices.audio.get_audio_device_names(False))
     mixer.quit()
-    # Initialize the recognizer 
-    r = sr.Recognizer()
-    thread2 = threading.Thread(target=checkinvites)
-    thread2.start()
-    thread3 = threading.Thread(target=move)
-    thread3.start()
-    thread4 = threading.Thread(target=console)
-    thread4.start()
+    
+    threading.Thread(target=checkinvites, daemon=True).start()
+    threading.Thread(target=move, daemon=True).start()
+    threading.Thread(target=console, daemon=True).start()
     
     while True:
         try:
