@@ -255,7 +255,7 @@ def SpeakText(command):
             is_talking = False
 
         # Start a thread for is_talking
-        audio_thread = threading.Thread(target=monitor_audio_playback, args=(mp3Length,))
+        audio_thread = threading.Thread(target=monitor_audio_playback, args=(mp3Length,), daemon=True)
         audio_thread.start()
 
         try:
@@ -299,7 +299,7 @@ def SpeakText(command):
                 sendchatbox(chunk)
                 time.sleep(delay)
 
-        message_thread = threading.Thread(target=send_chunks_with_delay, args=(chunks,))
+        message_thread = threading.Thread(target=send_chunks_with_delay, args=(chunks,), daemon=True)
         message_thread.start()
 
     except Exception as e:
