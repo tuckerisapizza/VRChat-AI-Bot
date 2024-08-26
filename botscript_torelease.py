@@ -98,104 +98,113 @@ def mainthread():
                     print(f"Could not request results from Google Speech Recognition service; {e}")
 
 def move():  
-    global isemoting, movementpaused, printnumgen
-    
-    client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
-    while (True):
-        if not isemoting and not movementpaused:
-            time.sleep(2.6)
-            num = random.randrange(1, 8)
-            if printnumgen:
-                print(num)
-            if num == 1:
-                client.send_message("/input/Jump", [1])
-                num2 = random.randrange(1,2)
-                #print("jump for " + str(num2) + " seconds")
-                client.send_message("/input/Jump", [0])
-            if num == 6:
-                client.send_message("/input/MoveForward", [1])
-                num2 = random.randrange(1,2)
-                #print("moving forward for " + str(num2) + " seconds")
-                time.sleep(num2)
-                client.send_message("/input/MoveForward", [0])
-            if num == 4:
-                client.send_message("/input/LookLeft", [1])
-                num2 = random.randrange(10, 75)
-                num3 = num2 / 100
-                #print("left for " + str(num3) + " seconds")
-                time.sleep(num3)
-                client.send_message("/input/LookLeft", [0])
-            if num == 2:
-                client.send_message("/input/LookRight", [1])
-                num2 = random.randrange(10, 75)
-                num3 = num2 / 100
-                #print("right for " + str(num3) + " seconds")
-                time.sleep(num3)
-                client.send_message("/input/LookRight", [0])
+    try:
+        global isemoting, movementpaused, printnumgen
+        
+        client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
+        while (True):
+            if not isemoting and not movementpaused:
+                time.sleep(2.6)
+                num = random.randrange(1, 8)
+                if printnumgen:
+                    print(num)
+                if num == 1:
+                    client.send_message("/input/Jump", [1])
+                    num2 = random.randrange(1,2)
+                    #print("jump for " + str(num2) + " seconds")
+                    client.send_message("/input/Jump", [0])
+                if num == 6:
+                    client.send_message("/input/MoveForward", [1])
+                    num2 = random.randrange(1,2)
+                    #print("moving forward for " + str(num2) + " seconds")
+                    time.sleep(num2)
+                    client.send_message("/input/MoveForward", [0])
+                if num == 4:
+                    client.send_message("/input/LookLeft", [1])
+                    num2 = random.randrange(10, 75)
+                    num3 = num2 / 100
+                    #print("left for " + str(num3) + " seconds")
+                    time.sleep(num3)
+                    client.send_message("/input/LookLeft", [0])
+                if num == 2:
+                    client.send_message("/input/LookRight", [1])
+                    num2 = random.randrange(10, 75)
+                    num3 = num2 / 100
+                    #print("right for " + str(num3) + " seconds")
+                    time.sleep(num3)
+                    client.send_message("/input/LookRight", [0])
+    except KeyboardInterrupt:
+        ...
                 
 def console():
-    global consoleenabled, bottitle
-    
-    while True:
-        if consoleenabled:
-            text = input()
-            bottitle = "||Message from Creator||"
-            if "/" not in text: #to run commands without the bot speaking it
-                SpeakText(text)
-            checkforreset(text)
-            checkforcommands(text, text)
-            checkforemotes(text)
-            debugcommandscheck(text)
-            bottitle = "🐝Tigerbee Bot🐝"
+    try:
+        global consoleenabled, bottitle
+        
+        while True:
+            if consoleenabled:
+                text = input()
+                bottitle = "||Message from Creator||"
+                if "/" not in text: #to run commands without the bot speaking it
+                    SpeakText(text)
+                checkforreset(text)
+                checkforcommands(text, text)
+                checkforemotes(text)
+                debugcommandscheck(text)
+                bottitle = "🐝Tigerbee Bot🐝"
+    except KeyboardInterrupt:
+        ...
 
 def checkinvites():
-    global consoleenabled, notiflog
-    
-    configuration = vrchatapi.Configuration(
-        username = credentials.VRCHAT_USER,
-        password = credentials.VRCHAT_PASSWORD,
-    )
-    with vrchatapi.ApiClient(configuration) as api_client:
-    #    # Set our User-Agent as per VRChat Usage Policy
-        api_client.user_agent = credentials.USER_AGENT
-        # Instantiate instances of API classes
-        auth_api = authentication_api.AuthenticationApi(api_client)
-        try:
-            # Step 3. Calling getCurrentUser on Authentication API logs you in if the user isn't already logged in.
-            current_user = auth_api.get_current_user()
-        except UnauthorizedException as e:
-            if e.status == 200:
-                if "Email 2 Factor Authentication" in e.reason:
-                    # Step 3.5. Calling email verify2fa if the account has 2FA disabled
-                    auth_api.verify2_fa_email_code(two_factor_email_code=TwoFactorEmailCode(input("Email 2FA Code: ")))
-                elif "2 Factor Authentication" in e.reason:
-                    # Step 3.5. Calling verify2fa if the account has 2FA enabled
-                    auth_api.verify2_fa(two_factor_auth_code=TwoFactorAuthCode(input("2FA Code: ")))
-                    current_user = auth_api.get_current_user()
-                else:
-                    print("Exception when calling API: %s\n", e)
-        except vrchatapi.ApiException as e:
-            print("Exception when calling API: %s\n", e)
-        #
-        print("Logged in as:", current_user.display_name)
-        consoleenabled = True
-        while(True):
+    try:
+        global consoleenabled, notiflog
+        
+        configuration = vrchatapi.Configuration(
+            username = credentials.VRCHAT_USER,
+            password = credentials.VRCHAT_PASSWORD,
+        )
+        with vrchatapi.ApiClient(configuration) as api_client:
+        #    # Set our User-Agent as per VRChat Usage Policy
+            api_client.user_agent = credentials.USER_AGENT
+            # Instantiate instances of API classes
+            auth_api = authentication_api.AuthenticationApi(api_client)
             try:
-                if notiflog:
-                    print("notifications checked!")
-                notifications = notifications_api.NotificationsApi(api_client).get_notifications()
-                for notification in notifications:
-                    if notification.type == 'friendRequest':
-                        notifications_api.NotificationsApi(api_client).accept_friend_request(notification.id)
-                        print("accepted friend!")
-                        if not filter(notification.sender_username):  
-                            SpeakText(f"Thanks for friending me, {notification.sender_username}! :3")
-                        invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
-                        groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
-                            
-                time.sleep(7)  # Check for notifications every 5 seconds
-            except:
-                print("notif error")
+                # Step 3. Calling getCurrentUser on Authentication API logs you in if the user isn't already logged in.
+                current_user = auth_api.get_current_user()
+            except UnauthorizedException as e:
+                if e.status == 200:
+                    if "Email 2 Factor Authentication" in e.reason:
+                        # Step 3.5. Calling email verify2fa if the account has 2FA disabled
+                        auth_api.verify2_fa_email_code(two_factor_email_code=TwoFactorEmailCode(input("Email 2FA Code: ")))
+                    elif "2 Factor Authentication" in e.reason:
+                        # Step 3.5. Calling verify2fa if the account has 2FA enabled
+                        auth_api.verify2_fa(two_factor_auth_code=TwoFactorAuthCode(input("2FA Code: ")))
+                        current_user = auth_api.get_current_user()
+                    else:
+                        print("Exception when calling API: %s\n", e)
+            except vrchatapi.ApiException as e:
+                print("Exception when calling API: %s\n", e)
+            #
+            print("Logged in as:", current_user.display_name)
+            consoleenabled = True
+            while(True):
+                try:
+                    if notiflog:
+                        print("notifications checked!")
+                    notifications = notifications_api.NotificationsApi(api_client).get_notifications()
+                    for notification in notifications:
+                        if notification.type == 'friendRequest':
+                            notifications_api.NotificationsApi(api_client).accept_friend_request(notification.id)
+                            print("accepted friend!")
+                            if not filter(notification.sender_username):  
+                                SpeakText(f"Thanks for friending me, {notification.sender_username}! :3")
+                            invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
+                            groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
+                                
+                    time.sleep(7)  # Check for notifications every 5 seconds
+                except Exception:
+                    print("notif error")
+    except KeyboardInterrupt:
+        ...
 
 def SpeakText(command):
     try:
@@ -456,6 +465,8 @@ def main():
             mainthread()
         except Exception:
             ...
+        except KeyboardInterrupt:
+            break
         finally:
             resets += 1
 
