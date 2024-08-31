@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from hugchat import hugchat
 from hugchat.login import Login
 import speech_recognition as sr
-from gtts import gTTS
+from nix.models.TTS import NixTTSInference
 from pygame import mixer, _sdl2 as devices
 from pythonosc import udp_client
 import vrchatapi
@@ -19,7 +19,8 @@ import time
 import credentials
 from mutagen.mp3 import MP3
 import syllables
-
+import numpy
+from gtts import gTTS
 
 stop_event = threading.Event()
 message_thread = None
@@ -27,7 +28,7 @@ is_talking = False
 mp3Length = 0
 
 resets = 0 #keeps track of if the bot breaks and restarts it
-bottitle = "🐝Tigerbee Bot🐝" # the bots title used in chatboxes
+bottitle = "🐝Tigerbee Bot 3.0🐝" # the bots title used in chatboxes
 listencount = 0 #keeps track of how many times the bot has gone without a prompt
 isemoting = False
 movementpaused = False
@@ -43,21 +44,21 @@ speechregenabled = True
 notiflog = False
 
 def mainthread():
-    global resets, listencount, currentinstance, movementpaused
+    global resets, listencount, currentinstance
     chatbotname = credentials.CHATBOT_NAME
     EMAIL = credentials.HUGGINGFACE_EMAIL
     PASSWD = credentials.HUGGINGFACE_PASSWORD
     cookie_path_dir = "./cookies/" # NOTE: trailing slash (/) is required to avoid errors
     sign = Login(EMAIL, PASSWD)
-    cookies = sign.login(cookie_dir_path=cookie_path_dir, save_cookies=True)
+    cookies = sign.login(cookie_dir_path=cookie_path_dir, save_cookies=False)
     chatbot = hugchat.ChatBot(cookies=cookies.get_dict(),system_prompt=credentials.SYSTEM_PROMPT)  # or cookie_path="usercookies/<email>.json"
-    message_result = chatbot.chat("Please give your users a kind greeting.") # note: message_result is a generator, the method will return immediately.
+    message_result = chatbot.chat("great your users in 1 sentence and friendly manner") # note: message_result is a generator, the method will return immediately.
     answer: str = message_result.wait_until_done() # you can also print(message_result) directly. 
     print(f'{chatbotname}: {answer}')
     if resets > 0:
         SpeakText("Bot reset. Please try again.")
     else:
-        SpeakText("Updated bot. " + answer)
+        SpeakText("updated bot. " + answer)
     sendchatbox("Initializing Speech Recognition...")
     while(True):
         recognizer = sr.Recognizer()
@@ -74,16 +75,16 @@ def mainthread():
                 text = sentence
                 if filter(text):
                     print(f'BAD WORD FOUND in prompt "{text}"')
-                    SpeakText("Prompt is innapropriate. Please try again.")
+                    SpeakText("prompt is innapropriate. please try again.")
                 else:
                     if checkforreset(text):
                         break
-                    message_result = chatbot.chat('<context_start>World: '+currentinstance+'<context_end>'+'/v<user_start>' +text+'<user_end>')
+                    message_result = chatbot.chat('<user_start>' +text+'<user_end>|<context_start>World: '+currentinstance+' \ Updates: You have a new CPU and more processing power.<context_end>')
                     sendchatbox("Thinking...\vPrompt: " + text)
                     answer: str = message_result.wait_until_done() # you can also print(message_result) directly. 
                     if filter(answer):
                         print('BAD WORD FOUND in response ')
-                        SpeakText("Response is innapropriate. Please try again.")
+                        SpeakText("response is innapropriate. please try again.")
                     else:
                         listencount = 0
                         print(f'{chatbotname}: {answer}')
@@ -93,9 +94,8 @@ def mainthread():
                         
             except sr.WaitTimeoutError:
                 if listencount > 12:
-                    sendchatbox("Stand in my circle to talk to me!\v(I'm hard of hearing)")
+                    sendchatbox("I have a new CPU!\vStand in the circle to talk to me.")
                     listencount = 0
-                    movementpaused = False
             except sr.UnknownValueError:
                 print("Speech recognition could not understand audio.")
             except sr.RequestError as e:
@@ -108,7 +108,7 @@ def move():
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     while (True):
         if isemoting == False and movementpaused == False:
-            time.sleep(3)
+            time.sleep(2.6)
             num = random.randrange(1, 8)
             if printnumgen:
                 print(num)
@@ -119,21 +119,21 @@ def move():
                 client.send_message("/input/Jump", [0])
             if num == 6:
                 client.send_message("/input/MoveForward", [1])
-                num2 = random.randrange(5,10)
+                num2 = random.randrange(1,2)
                 #print("moving forward for " + str(num2) + " seconds")
-                time.sleep(num2 / 10)
+                time.sleep(num2)
                 client.send_message("/input/MoveForward", [0])
             if num == 4:
                 client.send_message("/input/LookLeft", [1])
                 num2 = random.randrange(10, 75)
-                num3 = num2 / 150
+                num3 = num2 / 100
                 #print("left for " + str(num3) + " seconds")
                 time.sleep(num3)
                 client.send_message("/input/LookLeft", [0])
             if num == 2:
                 client.send_message("/input/LookRight", [1])
                 num2 = random.randrange(10, 75)
-                num3 = num2 / 150
+                num3 = num2 / 100
                 #print("right for " + str(num3) + " seconds")
                 time.sleep(num3)
                 client.send_message("/input/LookRight", [0])
@@ -151,7 +151,7 @@ def console():
             checkforcommands(text, text)
             checkforemotes(text)
             debugcommandscheck(text)
-            bottitle = "🐝Tigerbee Bot🐝"
+            bottitle = "🐝Tigerbee Bot 3.0🐝"
 
 def checkinvites():
     global consoleenabled, notiflog, currentinstance
@@ -186,7 +186,7 @@ def checkinvites():
         consoleenabled = True
         while(True):
             try:
-                time.sleep(9)
+                time.sleep(10)
                 if notiflog:
                     print("notifications checked!")
                 notifications = notifications_api.NotificationsApi(api_client).get_notifications()
@@ -195,11 +195,13 @@ def checkinvites():
                         notifications_api.NotificationsApi(api_client).accept_friend_request(notification.id)
                         print("accepted friend!")
                         if not filter(notification.sender_username):  
-                            SpeakText(f"Thanks for friending me, {notification.sender_username}!")
+                            SpeakText(f"thanks for friending me, {notification.sender_username}!")
                         invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
                         groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
+                oldcurrentinstance = currentinstance
                 currentinstance = worlds_api.WorldsApi(api_client).get_world(current_user.presence.world).name
-                print(currentinstance)
+                if currentinstance not in oldcurrentinstance:
+                    print(currentinstance)
                   # Check for notifications every 5 seconds
             except:
                 print("notif error")
@@ -211,7 +213,8 @@ def SpeakText(command):
         global stop_event
         global message_thread
         global num
-        
+        if len(command) > 650:
+                raise Exception("WAYYY TOO LONG")
         mixer.init(devicename = "CABLE Input (VB-Audio Virtual Cable)")
         sendchatbox("Generating Text to Speech...")
         # Stop any existing playback or message thread
@@ -220,24 +223,30 @@ def SpeakText(command):
             message_thread.join()  # Waits till the last chunk is done
         stop_event = threading.Event()
         is_talking = False
-
-
-        # Create and save TTS output
-        tts = gTTS(command.replace(":", " colon "), lang='en')
-        tts_filename = f"{num}.mp3"
-        tts.save(f"{num}norm.mp3")
-        
-        audio = AudioSegment.from_file(str(num) + "norm.mp3")
-
-        # Create and save TTS output
-        
-        
+        try:
+            if len(command) > 450:
+                raise Exception("long message")
+            nix = NixTTSInference(model_dir = "C:/Users/Tucker/Documents/huggingchat vrc bot/nix-ljspeech-deterministic-v0.1")
+            # Tokenize input text
+            c, c_length, phoneme = nix.tokenize(command.replace(":", " colon "))
+            xw = nix.vocalize(c, c_length)
+            audio_segment = pydub.AudioSegment(
+                (2 ** 15 * xw).astype(numpy.int16).tobytes(),
+                frame_rate=22050,
+                sample_width=2,
+                channels=1,
+            )
+            audio_segment.export(f"{num}norm.mp3", format="mp3")
+        except:
+             # Create and save TTS output
+            sendchatbox("Too long or failed, falling back to Google TTS...")
+            tts = gTTS(command.replace(":", " colon "), lang='en')
+            tts.save(f"{num}norm.mp3")
         audio = AudioSegment.from_file(str(num) + "norm.mp3")
         # Apply speed up factor
-        audio = audio.speedup(playback_speed=1.25)
+        audio = audio.speedup(playback_speed=1.15)
         # Export modified audio
         audio.export(str(num) + ".mp3", format="mp3")
-
         # Check MP3 length
         audio_temp = MP3(str(num) + ".mp3")
         mp3Length = audio_temp.info.length
@@ -279,11 +288,11 @@ def SpeakText(command):
         chunks = []
         start = 0
         while start < len(command):
-            end = min(start + 126, len(command))
+            end = min(start + 122, len(command))
             if end < len(command) and command[end] != ' ':
                 end = command.rfind(' ', start, end)
                 if end == -1 or end <= start:
-                    end = start + 126
+                    end = start + 122
 
             chunk = command[start:end].strip()
             chunks.append(chunk)
@@ -307,7 +316,10 @@ def SpeakText(command):
 
     except Exception as e:
         print(f"General error: {e}")
-        sendchatbox("Text to speech has failed. Please contact the owner of this bot.\v" + Exception)
+        if len(command)> 550:
+            sendchatbox("Message is too long to read.")
+        else:
+            sendchatbox("text to speech has failed. please contact the owner of this bot.")
 
 def sendchatbox(aiinput):
     global bottitle, printtextbox
@@ -338,6 +350,7 @@ def checkforreset(text):
     
 def checkforcommands(combined: str, prompt: str) -> None:
     global isemoting, movementpaused
+
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     response = combined.lower()
     isemoting = True
@@ -371,20 +384,10 @@ def checkforcommands(combined: str, prompt: str) -> None:
         movementpaused = True
     elif "unpause" in response and "move" in response:
         movementpaused = False
-
-    if (
-        "moving" in prompt
-        or "move" in prompt
-        and "don't" in prompt
-        or "stop" in prompt
-        or "start" in prompt
-        or "pause" in prompt
-    ):
-        movementpaused = not movementpaused
     isemoting = False
-
     for future in futures:
         future.result()
+    
 
 def checkforemotes(response):
     global isemoting
