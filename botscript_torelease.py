@@ -1,5 +1,4 @@
 from concurrent.futures import ThreadPoolExecutor
-from functools import cache
 from hugchat import hugchat
 from hugchat.login import Login
 import speech_recognition as sr
@@ -7,18 +6,20 @@ from gtts import gTTS
 from pygame import mixer, _sdl2 as devices
 from pythonosc import udp_client
 import vrchatapi
-from vrchatapi.api import authentication_api, notifications_api, groups_api
+from vrchatapi.api import authentication_api, notifications_api, groups_api, worlds_api
 from vrchatapi.exceptions import UnauthorizedException
 from vrchatapi.models.two_factor_auth_code import TwoFactorAuthCode
 from vrchatapi.models.two_factor_email_code import TwoFactorEmailCode
 from vrchatapi.models.create_group_invite_request import CreateGroupInviteRequest
 from pydub import AudioSegment
+import pydub
 import threading
 import random
 import time
 import credentials
 from mutagen.mp3 import MP3
 import syllables
+
 
 stop_event = threading.Event()
 message_thread = None
@@ -42,7 +43,7 @@ speechregenabled = True
 notiflog = False
 
 def mainthread():
-    global resets, listencount, currentinstance
+    global resets, listencount, currentinstance, movementpaused
     chatbotname = credentials.CHATBOT_NAME
     EMAIL = credentials.HUGGINGFACE_EMAIL
     PASSWD = credentials.HUGGINGFACE_PASSWORD
@@ -94,6 +95,7 @@ def mainthread():
                 if listencount > 12:
                     sendchatbox("Stand in my circle to talk to me!\v(I'm hard of hearing)")
                     listencount = 0
+                    movementpaused = False
             except sr.UnknownValueError:
                 print("Speech recognition could not understand audio.")
             except sr.RequestError as e:
@@ -106,7 +108,7 @@ def move():
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     while (True):
         if isemoting == False and movementpaused == False:
-            time.sleep(2.6)
+            time.sleep(3)
             num = random.randrange(1, 8)
             if printnumgen:
                 print(num)
@@ -117,21 +119,21 @@ def move():
                 client.send_message("/input/Jump", [0])
             if num == 6:
                 client.send_message("/input/MoveForward", [1])
-                num2 = random.randrange(1,2)
+                num2 = random.randrange(5,10)
                 #print("moving forward for " + str(num2) + " seconds")
-                time.sleep(num2)
+                time.sleep(num2 / 10)
                 client.send_message("/input/MoveForward", [0])
             if num == 4:
                 client.send_message("/input/LookLeft", [1])
                 num2 = random.randrange(10, 75)
-                num3 = num2 / 100
+                num3 = num2 / 150
                 #print("left for " + str(num3) + " seconds")
                 time.sleep(num3)
                 client.send_message("/input/LookLeft", [0])
             if num == 2:
                 client.send_message("/input/LookRight", [1])
                 num2 = random.randrange(10, 75)
-                num3 = num2 / 100
+                num3 = num2 / 150
                 #print("right for " + str(num3) + " seconds")
                 time.sleep(num3)
                 client.send_message("/input/LookRight", [0])
@@ -184,6 +186,7 @@ def checkinvites():
         consoleenabled = True
         while(True):
             try:
+                time.sleep(9)
                 if notiflog:
                     print("notifications checked!")
                 notifications = notifications_api.NotificationsApi(api_client).get_notifications()
@@ -195,9 +198,9 @@ def checkinvites():
                             SpeakText(f"Thanks for friending me, {notification.sender_username}!")
                         invitereq = CreateGroupInviteRequest(notification.sender_user_id, True)
                         groups_api.GroupsApi(api_client).create_group_invite("grp_ed3c9205-ab1c-4564-840d-526d188ab7bf", invitereq)
-                currentinstance = current_user.presence.instance
+                currentinstance = worlds_api.WorldsApi(api_client).get_world(current_user.presence.world).name
                 print(currentinstance)
-                time.sleep(9)  # Check for notifications every 5 seconds
+                  # Check for notifications every 5 seconds
             except:
                 print("notif error")
 
@@ -225,13 +228,18 @@ def SpeakText(command):
         tts.save(f"{num}norm.mp3")
         
         audio = AudioSegment.from_file(str(num) + "norm.mp3")
+
+        # Create and save TTS output
+        
+        
+        audio = AudioSegment.from_file(str(num) + "norm.mp3")
         # Apply speed up factor
-        audio = audio.speedup(playback_speed=1.2)
+        audio = audio.speedup(playback_speed=1.25)
         # Export modified audio
         audio.export(str(num) + ".mp3", format="mp3")
 
         # Check MP3 length
-        audio_temp = MP3(tts_filename)
+        audio_temp = MP3(str(num) + ".mp3")
         mp3Length = audio_temp.info.length
 
         # Monitor audio playback
@@ -255,7 +263,7 @@ def SpeakText(command):
 
         try:
             
-            mixer.music.load(tts_filename)
+            mixer.music.load(str(num) + ".mp3")
             mixer.music.play()
 
             # Increment the global num counter
@@ -312,8 +320,8 @@ def sendchatbox(aiinput):
     if printtextbox:
         print(messagestring)
 
-@cache
-def filterlist() -> set[str]:
+
+def filterlist():
     with open("filtered-list.txt", "r") as file:
         return set(line.strip().lower() for line in file if line.strip())
 
@@ -330,7 +338,6 @@ def checkforreset(text):
     
 def checkforcommands(combined: str, prompt: str) -> None:
     global isemoting, movementpaused
-
     client = udp_client.SimpleUDPClient("127.0.0.1", 9000)
     response = combined.lower()
     isemoting = True
